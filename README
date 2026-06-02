@@ -1,0 +1,106 @@
+                                ---------
+                                [NMO-SDK]
+                                ---------						         
+
+$Id: README,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $
+
+---------------------------------------------------------------------------
+I - Quick reference table
+---------------------------------------------------------------------------
+
+    Configurations used for NMO development:
+
+    OS              VERSIONS    ARCH        COMPILER          UP TO DATE ?
+    -----------------------------------------------------------------------
+    AmigaDE         1.x         -           ??                planned
+    AmigaOS         3.x         m68k        GCC 2.95.2        yes
+    AmigaOS/WarpUP  3.x         PowerPC     GCC 2.95.1        broken
+    AtheOS          0.x         x86         GCC 2.95.2        in construction
+    BeOS            5           x86         GCC               stopped :(
+    Darwin          1.3.x       powerpc     GCC 2.95.2        yes
+                    1.x         x86         GCC ??            planned
+    FreeBSD         3.5, 4.x    x86         GCC 2.95.2        yes
+                    5.x         powerpc     GCC ??            planned
+    IRIX            6.5.x       mips (n32)  GCC 2.95.2        yes
+    Linux           2.4         x86         GCC 2.95.2        yes
+    MacOS           8.x,9.x     PowerPC     CodeWarrior 5     yes
+    MacOS           X           PowerPC     CodeWarrior 5     yes
+    NetBSD          1.5         x86         GCC 2.95.2        yes
+    OpenBSD         2.9         x86         GCC 2.95.3        yes
+                    2.9         powerpc     GCC 2.95.3        yes
+                    2.9         sparc       GCC 2.95.3        yes
+    QNX             RTP         x86         GCC 2.95.2        in construction
+    SunOS           5.8         sparc       GCC 2.95.x        X11 broken
+    Windows         4.1+(98,Me) x86         VisualStudio 6,7  yes
+    Windows         NT 5 (2k)   x86         VisualStudio 6,7  yes
+
+
+---------------------------------------------------------------------------
+II - Compile + install
+---------------------------------------------------------------------------
+
++ Linux, *BSD, BeOS, IRIX, QNX, SunOS, AtheOS, Darwin:
+
+	You need:
+		+ GCC 2.95.x
+		+ GNU make
+		+ NetBSD: you also need the Pth library
+
+	Type:
+		$ sh configure 
+		$ gmake (or make)
+		$ su
+		$ gmake install (or make install)
+
+		and NEVER FORGET: always use GNU make 
+
+
++ AmigaOS + GeekGadgets
+
+	AmigaOS/68k can also be cross-compiled from Linux or BSD.
+	See http://www.nmo-sdk.org/amigaos/crossgcc .
+
+	m68k:	
+		You need: 
+			+ GeekGadgets (with ixemul 48.x and libnix)
+			+ gcc 2.95.x m68k
+			+ pthread 1.3.x m68k
+			+ Includes OS 3.5
+	
+		You have to type:
+			2- sh configure
+			3- make
+
+	WarpUP: in construction !
+		You need: 
+			+ GeekGadgets (with ixemul 48.1 and libnix)
+			+ gcc 2.95.x WarpUP
+			+ pthread 1.3.x PPC
+			+ Includes OS 3.5
+	
+		Type:
+			$ sh configure --cc=ppc-amigaos-gcc --os=WarpUP
+			$ make
+
+	
++ Windows:
+	You need either:
+		+ Visual Studio 6 or 7 (sorry...).
+		+ Borland C++ 5.5 
+			(the BCC 5.5 command line tools are avaible free of charges 
+			 from http://www.borland.com)
+
++ MacOS:
+	You need CodeWarrior 5 and CarbonLib (v1.2+).
+
+
++ MacOS X:
+	You need CodeWarriot 5 or the Public Beta Tools 
+    (tested with the October 2000 Release)
+
+
+	
+Hope this helps !
+
+nmo-sdk@nmo-sdk.org
+

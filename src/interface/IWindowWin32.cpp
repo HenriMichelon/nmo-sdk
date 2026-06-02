@@ -1,0 +1,210 @@
+/*                                ---------
+                                  [NMO-SDK]
+                                  ---------
+
+    The contents of this file are subject to the NMO SDK Public License
+    Version 1.1 (the "License"); you may not use this file except in
+    compliance with the License. You may obtain a copy of the License at
+    http://nmo-sdk.x-tech.org/licence.html
+
+    Software distributed under the License is distributed on an "AS IS"
+    basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+    License for the specific language governing rights and limitations under
+    the License.
+
+	(c) 1998-2002 Henri Michelon
+
+$Id: IWindowWin32.cpp,v 1.2 2002/11/29 09:32:25 hmichelon Exp $
+-------------------------------------------------------------------*/
+#include <nmo/NMO.hpp>
+#if defined(WIN32) || defined(_WIN32)
+using namespace NMO;
+#ifndef _MSC_VER
+# include <nmo/Thread.hpp>
+# include <nmo/Interface.hpp>
+# include <nmo/WindowApplication.hpp>
+#endif
+#include "WinApp.hpp"
+
+typedef struct
+{
+	_BOOL	closeFlag;
+} AsbtractIWindow;
+
+#define _m(x) ((AsbtractIWindow*)(this->mIWindowAbstract))->x
+
+//------------------------------------------------------------
+IWindow::IWindow(): display(NULL), handle(NULL) 
+{
+	mIWindowAbstract = (_PTR) new AsbtractIWindow;
+	_m(closeFlag) = FALSE;
+}
+
+
+//------------------------------------------------------------
+IWindow::~IWindow()
+{
+	Close();
+	if (display) { delete display; }
+	delete (AsbtractIWindow*)mIWindowAbstract;
+	Link::Drop(*this);
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetTitle(const UStringz&TEXT)
+{
+#ifdef _UNICODE
+	SetWindowTextW(IHANDLE(handle), TEXT);
+#else
+	Stringz title(TEXT);
+	SetWindowTextA(IHANDLE(handle), (_CHAR*)title);
+#endif
+}
+
+
+//------------------------------------------------------------
+UStringz IWindow::Title() const
+{
+	int l = GetWindowTextLength(IHANDLE(handle))+1;
+	_TCHAR *title = new _TCHAR[l];
+	GetWindowText(IHANDLE(handle), title, l);
+	UStringz r = title;
+	delete []title;
+	return r;
+}
+
+
+//------------------------------------------------------------
+_BOOL IWindow::Visible() const
+{
+	return IsWindowVisible(IHANDLE(handle));
+}
+
+
+//------------------------------------------------------------
+void IWindow::Show(_BOOL S)
+{
+	if (S)
+	{
+		if (style == WS_POPUP)
+			ShowWindow(IHANDLE(handle), SW_SHOWNA);
+		else			 
+			ShowWindow(IHANDLE(handle), SW_SHOWNORMAL);
+		SendMessage(IHANDLE(handle), WM_PAINT, 0, 0);
+	}
+	else
+		ShowWindow(IHANDLE(handle), SW_HIDE);
+}
+
+
+//------------------------------------------------------------
+void IWindow::Close()
+{
+	// Close flag is used to avoid re-entrance (with the EventDestroy event)
+	if (!_m(closeFlag))
+	{
+		_m(closeFlag) = TRUE;
+		SendMessage(IHANDLE(handle), WM_CLOSE, 0, 0);
+	}
+}
+
+
+//------------------------------------------------------------
+_LONG IWindow::Top() const
+{
+	RECT rect1;
+	GetWindowRect(IHANDLE(handle), &rect1);
+	return rect1.top;
+}
+
+
+//------------------------------------------------------------
+_LONG IWindow::Left() const
+{
+	RECT rect1;
+	GetWindowRect(IHANDLE(handle), &rect1);
+	return rect1.left;
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetPos(_LONG L, _LONG T)
+{
+	SetWindowPos(IHANDLE(handle), 0, 
+				L, T, 
+				0, 0, 
+				SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+}
+
+
+//------------------------------------------------------------
+_DWORD IWindow::Width() const
+{
+	RECT rect;
+	GetClientRect(IHANDLE(handle), &rect);
+	return rect.right - rect.left;
+}
+
+
+//------------------------------------------------------------
+_DWORD IWindow::Height() const
+{
+	RECT rect;
+	GetClientRect(IHANDLE(handle), &rect);
+	return rect.bottom - rect.top;
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetSize(_DWORD W, _DWORD H)
+{
+	RECT wrect, crect;
+	GetClientRect(IHANDLE(handle), &crect);
+	GetWindowRect(IHANDLE(handle), &wrect);
+	SetWindowPos(IHANDLE(handle), 0, 0, 0, 
+				W + (wrect.right - wrect.left) - (crect.right - crect.left),
+				H + (wrect.bottom - wrect.top) - (crect.bottom - crect.top),
+				SWP_ASYNCWINDOWPOS | SWP_DEFERERASE |
+				SWP_NOMOVE | SWP_NOREPOSITION  | 
+				SWP_NOREDRAW | SWP_NOSENDCHANGING |
+				SWP_NOZORDER | SWP_NOOWNERZORDER);
+}
+
+	
+//------------------------------------------------------------
+IRect IWindow::Rect() const
+{
+	IRect res;
+	RECT rect;
+	GetWindowRect(IHANDLE(handle), &rect);
+	res.left = rect.left;
+	res.top = rect.top;
+	res.width = rect.right - rect.left;
+	res.height = rect.bottom - rect.top;
+	return res;
+}
+
+
+//------------------------------------------------------------
+_BOOL IWindow::HasFocus() const
+{
+	return GetActiveWindow() == IHANDLE(handle);
+}
+
+
+//------------------------------------------------------------
+void IWindow::GiveFocus()
+{
+	SetActiveWindow(IHANDLE(handle));
+}
+
+
+
+//------------------------------------------------------------
+void IWindow :: SetBgColor (IRGBColor &COLOR)
+{
+}
+
+
+#endif

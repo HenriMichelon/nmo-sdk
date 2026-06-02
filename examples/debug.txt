@@ -1,0 +1,7 @@
+----- START DEBUG : Thu Nov 21 23:01:27 2002
+drop 12ee14, 12fd58, 14550c
+drop 12ee14, 12fbb0, 14550c
+drop 12fbb0, 14a8c4, 0
+drop 12ee14, 12fa08, 14550c
+drop 12fa08, 14a33c, 0
+drop 14cff4, 14e9f4, 0

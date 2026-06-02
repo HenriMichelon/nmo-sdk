@@ -1,0 +1,55 @@
+SRCDIR=.
+
+OBJECTS=\
+	    $(SRCDIR)/ConsoleApp \
+	    $(SRCDIR)/DaemonApp \
+	    $(SRCDIR)/DB \
+	    $(SRCDIR)/Digest \
+	    $(SRCDIR)/DynModule \
+	    $(SRCDIR)/Exception \
+	    $(SRCDIR)/File \
+	    $(SRCDIR)/GScrollBox \
+	    $(SRCDIR)/GZipStream \
+	    $(SRCDIR)/HelloWorld-GUI \
+	    $(SRCDIR)/HelloWorld-Stdio \
+	    $(SRCDIR)/HelloWorld-WinApp \
+	    $(SRCDIR)/IStdDialog \
+	    $(SRCDIR)/IWindow \
+	    $(SRCDIR)/MyModule.so \
+	    $(SRCDIR)/RegEx \
+	    $(SRCDIR)/StdioApp \
+	    $(SRCDIR)/Stream \
+	    $(SRCDIR)/Stringz \
+	    $(SRCDIR)/SysInfo \
+	    $(SRCDIR)/Thread \
+	    $(SRCDIR)/TimerAlarm \
+	    $(SRCDIR)/Widgets1 \
+	    $(SRCDIR)/Widgets2 \
+	    $(SRCDIR)/Widgets3 \
+		
+
+				
+####### Build rules
+.SUFFIXES: .cpp .o
+
+all: $(OBJECTS)
+
+%: %.cpp
+	$(CC) -o $@ $< $(CFLAGS) $(LFLAGS) $(ILFLAGS) -l$(GUILIB) -l$(CRYPTLIB)
+
+%.so: %.cpp
+	$(SO_CC)  -o $@ $<  $(CFLAGS) $(SO_CFLAGS) $(SO_LFLAGS)
+
+install:
+	$(INSTALLDIRS) $(prefix)
+	$(INSTALLFILE) $(EXENAME) "$(prefix)/bin"
+
+clean: 
+	$(RM) $(OBJECTS) NewFile.cpp GZipStream.cpp.gz filestream.txt daemon_debug.txt
+
+distclean: clean
+	$(RM) Makefile
+
+depend:
+	$(MKDEP) $(CFLAGS) *.cpp
+

@@ -1,0 +1,278 @@
+/*                                ---------
+                                  [NMO-SDK]
+                                  ---------
+
+    The contents of this file are subject to the NMO SDK Public License
+    Version 1.1 (the "License"); you may not use this file except in
+    compliance with the License. You may obtain a copy of the License at
+    http://nmo-sdk.x-tech.org/licence.html
+
+    Software distributed under the License is distributed on an "AS IS"
+    basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+    License for the specific language governing rights and limitations under
+    the License.
+
+                Intuition support for window management
+
+                Windows are opened on the 'Show' method
+                because Intuition lack of Show() and Hide() functions for windows.
+
+	(c) 1998-2002 Henri Michelon
+
+$Id: IWindowIntuition.cpp,v 1.1.1.1 2002/11/03 19:18:17 hmichelon Exp $
+--------------------------------------------------------------------------*/
+#if defined(_AMIGA) || defined(amigaos)
+#include <exec/exec.h>
+#include <clib/exec_protos.h>
+#include <intuition/intuition.h>
+#include <clib/intuition_protos.h>
+#include <nmo/NMO.hpp>
+#include <nmo/Interface.hpp>
+#include "WinIntuition.hpp"
+#include "IDisplayAmiga.hpp"
+#include "IDisplayCGFX.hpp"
+using namespace NMO;
+
+//------------------------------------------------------------
+IWindow::IWindow(): display(NULL), handle(NULL)
+{
+    newRect.left = 0;
+    newRect.top = 0;
+    newRect.width = 50;
+    newRect.height = 50;
+}
+
+
+//------------------------------------------------------------
+IWindow::~IWindow()
+{
+    Close();
+    IDisplayCGFX *d = (IDisplayCGFX*) display;
+    if (display) delete d;
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetTitle(const UStringz&TEXT)
+{
+    Stringz title = TEXT;
+    SetWindowTitles(handle, (char*)title, (char*)title);
+    title = TEXT;
+}
+
+
+//------------------------------------------------------------
+UStringz IWindow::Title() const
+{
+    return UStringz(title);
+}
+
+
+//------------------------------------------------------------
+_BOOL IWindow::Visible() const
+{
+    return handle != NULL;
+}
+
+
+//------------------------------------------------------------
+void IWindow::Show(_BOOL S)
+{
+    ASSERT(display);
+    if ((!S) && handle) {
+        active = FALSE;
+        Node *succ;
+        Forbid();
+        IntuiMessage *msg = (IntuiMessage*) handle->UserPort->mp_MsgList.lh_Head;
+        while ((succ = msg->ExecMessage.mn_Node.ln_Succ)) {
+            if (msg->IDCMPWindow == handle) {
+                Remove((Node*)msg);
+                ReplyMsg((Message*)msg);
+            }
+            msg = (IntuiMessage*)succ;
+        }
+        handle->UserPort = NULL;
+        ModifyIDCMP(handle, 0);
+        IDisplayAmiga *disp = (IDisplayAmiga*)display;
+        disp->DestroyBuffers();
+        Permit();    
+        CloseWindow(handle);
+        handle = NULL;
+        link->handle = NULL;
+        EventHide();
+        return;
+    }
+
+    if (handle) return; // window already visible
+
+    EventShow();
+
+    BOOL size = FALSE;
+    BOOL border = FALSE;
+    switch (type)
+    {
+    case IWindow::NORMAL:
+        break;
+    case IWindow::SIZEABLE:
+        size = TRUE;
+        break;
+    case IWindow::DIALOG:
+        break;
+    case IWindow::POPUP:
+        border = TRUE;
+        break;
+    };
+
+    handle = OpenWindowTags(NULL,
+                            WA_Top, newRect.top,
+                            WA_Left, newRect.left,
+                            WA_InnerWidth, newRect.width,
+                            WA_InnerHeight, newRect.height,
+                            WA_PubScreen, IDisplayAmiga::sScreen,
+                            WA_Activate, TRUE,
+                            WA_Title, (char*)title,
+                            WA_DragBar, TRUE,
+                            WA_DepthGadget, TRUE,
+                            WA_CloseGadget, TRUE,
+                            WA_SizeGadget, size,
+                            WA_Borderless, border,
+                            WA_SimpleRefresh, TRUE,
+                            WA_AutoAdjust, TRUE,
+                            WA_ReportMouse, TRUE,
+                            WA_IDCMP,IDCMP_CLOSEWINDOW |
+                            IDCMP_ACTIVEWINDOW | IDCMP_INACTIVEWINDOW |
+                            IDCMP_RAWKEY | 
+                            IDCMP_NEWSIZE | IDCMP_CHANGEWINDOW |
+                            IDCMP_REFRESHWINDOW | 
+                            IDCMP_MOUSEMOVE | IDCMP_MOUSEBUTTONS,
+                            TAG_DONE);
+    if (!handle) {
+        Debug(dprintf("IWindowIntuition: Show\n");)
+        return;
+    }
+    link->handle = handle;
+    IDisplayAmiga *disp = (IDisplayAmiga*) display;
+	disp->SetWindow(handle);
+    handle->UserPort = WinIntuition::mainPort;
+    if (!disp->CreateBuffers()) {
+        dprintf("IWindowIntuition: initializing display\n");
+        return;
+    }
+    if (size) WindowLimits(handle, 1, 1, ~0, ~0);
+	IRect r(0, 0, newRect.width, newRect.height);
+    EventResize();
+	EventDraw(r);
+    RefreshDisplay(r);
+}
+
+
+//------------------------------------------------------------
+void IWindow::Close()
+{
+    if (!handle) return; // window is already closed/hidden
+    
+    EventDestroy();
+    
+    active = FALSE;
+    
+    Node *succ;
+    Forbid();
+    IntuiMessage *msg = (IntuiMessage*) handle->UserPort->mp_MsgList.lh_Head;
+
+    while ((succ = msg->ExecMessage.mn_Node.ln_Succ))
+    {
+        if (msg->IDCMPWindow == handle)
+        {
+            Remove((Node*)msg);
+            ReplyMsg((Message*)msg);
+        }
+        msg = (IntuiMessage*)succ;
+    }
+    handle->UserPort = NULL;
+    ModifyIDCMP(handle, 0);
+    display->DestroyBuffers();
+    Permit();
+    CloseWindow(handle);
+
+    ListIterator<IWindow::Link> list(IWindow::Link::handles);
+    WinIntuition::quit = (handle == list[1].handle);
+	if (WinIntuition::quit) { Application::App().Terminate(); }
+    handle = NULL;
+    Link::Drop(*this);
+}
+
+
+//------------------------------------------------------------
+_LONG IWindow::Top() const
+{
+    return newRect.top;
+}
+
+
+//------------------------------------------------------------
+_LONG IWindow::Left() const
+{
+    return newRect.left;
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetPos(_LONG L, _LONG T)
+{
+    newRect.left = L;
+    newRect.top = T;
+    if (handle) MoveWindow(handle, L - handle->BorderLeft, T - handle->BorderTop);
+}
+
+
+//------------------------------------------------------------
+_DWORD IWindow::Width() const
+{
+    return newRect.width;
+}
+
+
+//------------------------------------------------------------
+_DWORD IWindow::Height() const
+{
+    return newRect.height;
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetSize(_DWORD W, _DWORD H)
+{
+    newRect.width = W;
+    newRect.height = H;
+    if (handle) SizeWindow(handle, W - Width(), H - Height());
+}
+
+    
+//------------------------------------------------------------
+IRect IWindow::Rect() const
+{
+    return newRect;
+}
+
+
+//------------------------------------------------------------
+_BOOL IWindow::HasFocus() const
+{
+    return active;
+}
+
+
+//------------------------------------------------------------
+void IWindow::GiveFocus()
+{
+    if (handle) ActivateWindow(handle);
+}
+
+
+//------------------------------------------------------------
+void IWindow :: SetBgColor (IRGBColor &COLOR)
+{
+}
+
+
+#endif

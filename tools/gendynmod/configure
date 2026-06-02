@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "generating Makefile..."
+nmomk=`nmo-sdk-config --makefile`
+rm -f Makefile
+cat > Makefile <<EOF
+include $nmomk
+EOF
+cat Makefile.in >> Makefile

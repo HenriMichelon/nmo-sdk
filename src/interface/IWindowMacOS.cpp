@@ -1,0 +1,199 @@
+/*                                ---------
+                                  [NMO-SDK]
+                                  ---------
+
+    The contents of this file are subject to the NMO SDK Public License
+    Version 1.1 (the "License"); you may not use this file except in
+    compliance with the License. You may obtain a copy of the License at
+    http://nmo-sdk.x-tech.org/licence.html
+
+    Software distributed under the License is distributed on an "AS IS"
+    basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+    License for the specific language governing rights and limitations under
+    the License.
+
+	(c) 2000-2002 Henri Michelon
+
+$Id: IWindowMacOS.cpp,v 1.2 2002/11/29 09:32:25 hmichelon Exp $
+-------------------------------------------------------------------*/
+#if defined(_MACOS) || defined(macintosh)
+#include <nmo/NMO.hpp>
+#include <nmo/Interface.hpp>
+#include "IDisplayMacOS.hpp"
+using namespace NMO;
+
+//------------------------------------------------------------
+IWindow::IWindow(): display(NULL), handle(NULL) {}
+
+
+//------------------------------------------------------------
+IWindow::~IWindow()
+{
+	if (handle != NULL) { DisposeWindow(IHANDLE(handle)); }
+	if (display != NULL) { delete display; }
+    Link::Drop(*this);
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetTitle(const UStringz&TEXT)
+{
+	if (handle == NULL) { return; }
+	Str255 title;
+	Stringz text = TEXT;
+	CopyCStringToPascal(text, title);
+	SetWTitle(IHANDLE(handle), title);
+}
+
+
+//------------------------------------------------------------
+UStringz IWindow::Title() const
+{
+	if (handle == NULL) { return ""; }
+	_CHAR ctitle[255];
+	Str255 title;
+	GetWTitle(IHANDLE(handle), title);
+	CopyPascalStringToC(title, ctitle);
+	return ctitle;
+}
+
+
+//------------------------------------------------------------
+_BOOL IWindow::Visible() const
+{
+	return ((handle != NULL) && 
+			IsWindowVisible(IHANDLE(handle)) && 
+			(!IsWindowCollapsed(IHANDLE(handle))));
+}
+
+
+//------------------------------------------------------------
+void IWindow::Show(_BOOL S)
+{
+	if (handle != NULL) {
+		TransitionWindow(IHANDLE(handle),
+						 kWindowZoomTransitionEffect,
+						 (S ? kWindowShowTransitionAction :
+						 	  kWindowHideTransitionAction),
+						 NULL);
+	}
+}
+
+
+//------------------------------------------------------------
+void IWindow::Close()
+{
+	if (handle != NULL) {
+		DisposeWindow(IHANDLE(handle));
+		handle = NULL;
+	}
+}
+
+
+//------------------------------------------------------------
+_LONG IWindow::Top() const
+{
+	if (handle == NULL) { return 0; }
+	::Rect rect;
+	GetWindowBounds(IHANDLE(handle), kWindowContentRgn, &rect);
+	return rect.top;
+}
+
+
+//------------------------------------------------------------
+_LONG IWindow::Left() const
+{
+	if (handle == NULL) { return 0; }
+	::Rect rect;
+	GetWindowBounds(IHANDLE(handle), kWindowContentRgn, &rect);
+	return rect.left;
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetPos(_LONG L, _LONG T)
+{
+	if (handle == NULL) { return; }
+	MoveWindow(IHANDLE(handle), L, T, FALSE);
+	EventMove();
+}
+
+
+//------------------------------------------------------------
+_DWORD IWindow::Width() const
+{
+	if (handle == NULL) { return 0; }
+	::Rect rect;
+	GetWindowBounds(IHANDLE(handle), kWindowContentRgn, &rect);
+	return rect.right - rect.left;
+}
+
+
+//------------------------------------------------------------
+_DWORD IWindow::Height() const
+{
+	if (handle == NULL) { return 0; }
+	::Rect rect;
+	GetWindowBounds(IHANDLE(handle), kWindowContentRgn, &rect);
+	return rect.bottom - rect.top;
+}
+
+
+//------------------------------------------------------------
+void IWindow::SetSize(_DWORD W, _DWORD H)
+{
+	if (handle == NULL) { return; }
+	::Rect wrect;
+	//::Rect crect;
+	GetWindowBounds(IHANDLE(handle), kWindowStructureRgn, &wrect);	
+	//GetWindowBounds(handle, kWindowContentRgn, &crect);
+	_DWORD hh = (wrect.bottom - wrect.top);
+	_DWORD ww = (wrect.right - wrect.left);
+	if ((W != ww) || (H != hh)) {
+		SizeWindow(IHANDLE(handle), 
+					W, // + (wrect.right - wrect.left) - ww, 
+					H, // + (wrect.bottom - wrect.top) - hh, 
+					FALSE);
+		EventResize();
+		ResizeDisplay();
+	}
+}
+
+	
+//------------------------------------------------------------
+IRect IWindow::Rect() const
+{
+	IRect res;
+	if (handle != NULL) {
+		::Rect rect;
+		GetWindowBounds(IHANDLE(handle), kWindowContentRgn, &rect);
+		res.left = rect.left;
+		res.top = rect.top;
+		res.width = rect.right - rect.left;
+		res.height = rect.bottom - rect.top;
+	}
+	return res;
+}
+
+
+//------------------------------------------------------------
+_BOOL IWindow::HasFocus() const
+{
+	return (IHANDLE(handle) == FrontWindow());
+}
+
+
+//------------------------------------------------------------
+void IWindow::GiveFocus()
+{
+	if (handle != NULL) { SelectWindow(IHANDLE(handle)); }
+}
+
+
+//------------------------------------------------------------
+void IWindow :: SetBgColor (IRGBColor &COLOR)
+{
+}
+
+
+#endif

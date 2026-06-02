@@ -1,0 +1,206 @@
+#$Id: Makefile.objs,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $
+
+ZLIBDIR=$(CPPDIR)/datatypes/zlib
+PNGDIR=$(CPPDIR)/datatypes/libpng
+
+ifdef HAVE_MYSQL
+MYSQL_OBJECTS=$(CPPDIR)/db/DBDatabaseMySQL.o \
+			$(CPPDIR)/db/modules/ModMySQL.o
+endif
+
+ifdef HAVE_LIBUNGIF
+LIBUNGIF_OBJECTS=$(CPPDIR)/datatypes/modules/Modungif.o \
+				$(CPPDIR)/datatypes/FileGif.o
+endif
+
+ifdef HAVE_NCURSES
+TERMCAP_OBJECTS=$(CPPDIR)/ConsoleApplicationTermcap.o \
+				$(CPPDIR)/ConsoleApplication.o
+endif
+
+ifdef HAVE_TERMCAP
+TERMCAP_OBJECTS=$(CPPDIR)/ConsoleApplicationTermcap.o \
+				$(CPPDIR)/ConsoleApplication.o
+endif
+
+ifdef HAVE_INTERFACE
+INTERFACE_OBJECTS+=$(CPPDIR)/WindowApplication.o \
+			$(CPPDIR)/interface/IDisplay.o \
+			$(CPPDIR)/interface/IDisplayChunky.o \
+			$(CPPDIR)/interface/IWindow.o \
+			$(CPPDIR)/interface/IStdDialog.o \
+			$(CPPDIR)/interface/IMouse.o \
+			$(CPPDIR)/interface/IScreen.o \
+			$(CPPDIR)/interface/IFont.o \
+			$(CPPDIR)/interface/IFontEngineFixedPixmap.o
+endif
+
+ifdef HAVE_X11
+INTERFACE_OBJECTS+=$(CPPDIR)/interface/IDisplayX11.o \
+            	$(CPPDIR)/interface/IKeybX11.o \
+	            $(CPPDIR)/interface/X11Win.o \
+    	        $(CPPDIR)/interface/IWindowX11.o \
+        	    $(CPPDIR)/interface/IFontEngineX11.o \
+            	$(CPPDIR)/interface/ICursorX11.o \
+				$(CPPDIR)/WindowApplicationX11.o
+ifdef HAVE_MOTIF
+INTERFACE_OBJECTS+=$(CPPDIR)/interface/IStdDialogMotif.o
+INTERFACE_OBJECTS+=$(CPPDIR)/interface/modules/ModXm.o
+else
+ifdef HAVE_GTK
+INTERFACE_OBJECTS+=$(CPPDIR)/interface/IStdDialogGTK.o
+INTERFACE_OBJECTS+=$(CPPDIR)/interface/modules/Modgtk12.o
+INCLUDES+=$(GTK_INCS)
+else
+INTERFACE_OBJECTS+=$(CPPDIR)/interface/IStdDialogX11.o
+endif # GTK
+endif # MOTIF
+endif # X11
+
+
+ifdef HAVE_PTHREAD
+PTHREAD_OBJECTS=$(CPPDIR)/thread/ThThreadPosix.o
+endif
+
+ifdef HAVE_SDL
+SDL_OBJECTS=$(CPPDIR)/sound/SoundDeviceSDL.o
+endif
+
+CORE_OBJECTS=$(SDL_OBJECTS) \
+		$(MYSQL_OBJECTS) \
+		$(PTHREAD_OBJECTS) \
+		$(TERMCAP_OBJECTS) \
+		$(CPPDIR)/Application.o \
+		$(CPPDIR)/CGIApplication.o \
+		$(CPPDIR)/Stream.o \
+		$(CPPDIR)/FileStream.o \
+		$(CPPDIR)/GZipStream.o \
+		$(CPPDIR)/MemoryStream.o \
+		$(CPPDIR)/ResourcesTable.o \
+		$(CPPDIR)/base/Args.o \
+		$(CPPDIR)/base/Exc.o \
+		$(CPPDIR)/base/Stringz.o \
+		$(CPPDIR)/base/Debug.o \
+		$(CPPDIR)/base/Decimal.o \
+		$(CPPDIR)/base/Memory.o \
+		$(CPPDIR)/base/Defines.o \
+		$(CPPDIR)/base/RegEx.o \
+		$(CPPDIR)/base/UChar.o \
+		$(CPPDIR)/base/UStringz.o \
+		$(CPPDIR)/sys/File.o \
+		$(CPPDIR)/sys/Dir.o \
+		$(CPPDIR)/sys/Env.o \
+		$(CPPDIR)/sys/DateTime.o \
+		$(CPPDIR)/sys/DirScan.o \
+		$(CPPDIR)/sys/DynModule.o \
+		$(CPPDIR)/sys/SignalEvent.o \
+		$(CPPDIR)/sys/EnvPath.o \
+		$(CPPDIR)/interface/IRect.o \
+		$(CPPDIR)/interface/IPixmap.o \
+		$(CPPDIR)/interface/IPalette.o \
+		$(CPPDIR)/datatypes/FilePng.o \
+		$(CPPDIR)/interface/IColorSpace.o \
+		$(CPPDIR)/datatypes/FileTxt.o \
+		$(CPPDIR)/datatypes/FileCfg.o \
+		$(CPPDIR)/datatypes/DatatypePixmap.o \
+		$(CPPDIR)/datatypes/FileWav.o \
+		$(CPPDIR)/datatypes/FileIFF.o \
+		$(CPPDIR)/thread/ThCriticalSection.o \
+		$(CPPDIR)/db/DBDatabase.o \
+		$(CPPDIR)/db/DBType.o \
+		$(CPPDIR)/db/DBValue.o \
+		$(CPPDIR)/db/DBSet.o \
+		$(CPPDIR)/db/DBTable.o \
+		$(CPPDIR)/db/DBDynaset.o \
+		$(CPPDIR)/db/DBSnapshot.o \
+		$(CPPDIR)/net/NetID.o \
+		$(CPPDIR)/net/NetMessage.o \
+		$(CPPDIR)/net/NetStream.o \
+		$(CPPDIR)/net/URL.o \
+		$(CPPDIR)/net/InternetConnection.o \
+		$(CPPDIR)/sound/SoundBuffer.o \
+		$(CPPDIR)/sound/SoundBufferRaw.o \
+		$(CPPDIR)/sound/SoundDevice.o \
+		$(CPPDIR)/sound/SoundDeviceStream.o \
+		$(CPPDIR)/sound/WaveTrack.o \
+		$(ZLIBDIR)/adler32.o \
+		$(ZLIBDIR)/compress.o \
+		$(ZLIBDIR)/crc32.o \
+		$(ZLIBDIR)/deflate.o \
+		$(ZLIBDIR)/gzio.o \
+		$(ZLIBDIR)/infblock.o \
+		$(ZLIBDIR)/inffast.o \
+		$(ZLIBDIR)/inflate.o \
+		$(ZLIBDIR)/infcodes.o \
+		$(ZLIBDIR)/inftrees.o \
+		$(ZLIBDIR)/infutil.o \
+		$(ZLIBDIR)/trees.o \
+		$(ZLIBDIR)/uncompr.o \
+		$(ZLIBDIR)/zutil.o \
+		$(PNGDIR)/png.o \
+		$(PNGDIR)/pngerror.o \
+		$(PNGDIR)/pngget.o \
+		$(PNGDIR)/pngmem.o \
+		$(PNGDIR)/pngpread.o \
+		$(PNGDIR)/pngread.o \
+		$(PNGDIR)/pngrio.o \
+		$(PNGDIR)/pngrtran.o \
+		$(PNGDIR)/pngwtran.o \
+		$(PNGDIR)/pngrutil.o \
+		$(PNGDIR)/pngset.o \
+		$(PNGDIR)/pngtrans.o \
+		$(PNGDIR)/pngwio.o \
+		$(PNGDIR)/pngwrite.o \
+		$(PNGDIR)/pngwutil.o \
+		$(LIBUNGIF_OBJECTS)
+
+
+###########
+DIGESTDIR=$(CPPDIR)/addons
+CRYPT_OBJECTS=$(DIGESTDIR)/digest/Digest.o \
+		 	$(DIGESTDIR)/digest/DigestMD5.o
+
+
+###########
+GIFDIR=$(CPPDIR)/datatypes/giflib
+GIF_OBJECTS=$(GIFDIR)/dgif_lib.o \
+			$(GIFDIR)/gif_err.o \
+			$(GIFDIR)/gif_hash.o \
+			$(GIFDIR)/gifalloc.o
+
+
+###########
+GUIDIR=$(CPPDIR)/addons/gui
+GUI_OBJECTS=$(GUIDIR)/GWidget.o \
+			$(GUIDIR)/GTexture.o \
+			$(GUIDIR)/GWindow.o \
+			$(GUIDIR)/GLayout.o \
+			$(GUIDIR)/GLayoutPixmap.o \
+			$(GUIDIR)/GResourcePixmap.o \
+			$(GUIDIR)/GLayoutVector.o \
+			$(GUIDIR)/GResourceVector.o \
+			$(GUIDIR)/GButton.o \
+			$(GUIDIR)/GCheckWidget.o \
+			$(GUIDIR)/GMisc.o \
+			$(GUIDIR)/GText.o \
+			$(GUIDIR)/GTextEdit.o \
+			$(GUIDIR)/GProgressBar.o \
+			$(GUIDIR)/GScrollBar.o \
+			$(GUIDIR)/GUpDown.o \
+			$(GUIDIR)/GValueSelect.o \
+			$(GUIDIR)/GPicture.o \
+			$(GUIDIR)/GList.o \
+			$(GUIDIR)/GListBox.o \
+			$(GUIDIR)/GTrackBar.o \
+			$(GUIDIR)/GRoundButton.o \
+			$(GUIDIR)/GTabs.o \
+			$(GUIDIR)/GGrid.o \
+			$(GUIDIR)/GScrollBox.o
+
+
+###########
+SHELLDIR=$(CPPDIR)/addons/shell
+SHELL_OBJECTS=$(SHELLDIR)/ShellApplication.o \
+			$(SHELLDIR)/ShellAlias.o \
+			$(SHELLDIR)/ShellHistory.o \
+			$(SHELLDIR)/ShellCommand.o

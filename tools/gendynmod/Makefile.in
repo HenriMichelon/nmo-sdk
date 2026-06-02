@@ -1,0 +1,30 @@
+#$Id: Makefile.in,v 1.1.1.1 2002/11/03 19:18:17 hmichelon Exp $
+
+EXENAME=gendynmod
+SRCDIR=.
+
+OBJECTS = $(SRCDIR)/App.o
+
+####### Build rules
+.SUFFIXES: .cpp
+
+.cpp.o:
+	$(MKOBJ) -c $< -o $@
+	
+all: $(OBJECTS)
+	$(MKOBJ) -o $(EXENAME) $(OBJECTS) $(LFLAGS)
+	
+clean: 
+	$(RM) $(OBJECTS)
+	$(RM) $(EXENAME)
+	
+install:
+	$(INSTALLDIRS) $(INSDIR)/bin
+	$(INSTALLFILE) $(EXENAME) $(INSDIR)/bin
+
+distclean: clean
+	$(RM) Makefile
+	
+depend:
+	$(MKDEP) *.cpp
+

@@ -1,0 +1,1027 @@
+#!/bin/sh
+# $Id: configure,v 1.2 2002/11/07 07:59:38 hmichelon Exp $
+# (c) 2000-2002 Henri Michelon
+
+ECHO="echo"
+ECHON="echo -n"
+TEST="test"
+CAT="cat"
+
+LOGFILE=./config.log
+$ECHO `date` > config.log
+
+generate_makefile_nmo_mk ()
+{
+sdkver=`$CAT VERSION`
+$CAT >> $target <<EOF
+
+# SDK version
+SDKVER=$sdkver
+OSNAME=$OSNAME
+CPUNAME=$CPUNAME
+
+# SDK directories
+INCDIR=\$(NMODIR)$INCDIR
+LIBDIR=\$(NMODIR)$LIBDIR
+
+# installation directory. 
+PREFIX=$prefix
+
+# build options
+GTK_INCS=$GTK_INCS
+DEBUG=$DEBUG
+
+HAVE_X11=$HAVE_X11
+HAVE_MYSQL=$HAVE_MYSQL
+HAVE_LIBUNGIF=$HAVE_LIBUNGIF
+HAVE_TERMCAP=$HAVE_TERMCAP
+HAVE_NCURSES=$HAVE_NCURSES
+HAVE_PTHREAD=$HAVE_PTHREAD
+HAVE_SDL=$HAVE_SDL
+HAVE_GTK=$HAVE_GTK
+HAVE_MOTIF=$HAVE_MOTIF
+HAVE_INTERFACE=$HAVE_INTERFACE
+
+CC=$CCCMD
+LD=$LDCMD
+AR=$ARCMD
+RM=rm -f
+LN=ln -s -f
+MAKE=$MAKECMD --no-print-directory --no-builtin-rules
+INSTALLDIRS=install -d
+INSTALLFILE=install -c
+MKDEP=sh \$(NMODIR)/$MKDEP -cc \$(CC) -r "\$(DEPEND_SYSINCS)"
+
+EOF
+
+if [ ! -z "$CFLAGS" ]
+then
+	$ECHO "CFLAGS=$CFLAGS" >> $target
+fi	
+if [ ! -z "$LFLAGS" ]
+then	
+	$ECHO "LFLAGS=$LFLAGS" >> $target
+fi	
+
+if [ -f $NMODIR/build/Makefile.$CCOPT.in ]
+then
+	$CAT $NMODIR/build/Makefile.$CCOPT.in >> $target
+else
+	$CAT $NMODIR/build/$OSNAME/Makefile.$CCOPT.in >> $target
+fi	
+
+$CAT >> $target << EOF
+
+# libraries files names
+MAINLIB=nmo\$(D)
+IFACELIB=nmoiface\$(D)
+GUILIB=nmogui\$(D)
+CRYPTLIB=nmocrypt\$(D)
+SHELLLIB=nmoshell\$(D)
+
+# basic compiler & linker options
+INCLUDES=$INCLUDES
+DEPEND_SYSINCS=$DEPEND_SYSINCS $SDL_INCS
+CFLAGS+=-DHAVE_CONFIGH -I\$(INCDIR) \$(INCLUDES) $SDL_INCS
+LFLAGS+=$LIBS -L\$(LIBDIR) -l\$(MAINLIB) $EXTRA_LIBS
+ILFLAGS+=-l\$(IFACELIB) $SDL_LIBS$X11_LIBS$GTK_LIBS$MOTIF_LIBS
+
+EOF
+$CAT $NMODIR/build/$OSNAME/Makefile.$CCOPT >> $target
+}
+
+
+#--------------------------------------------
+ALLBASEDIRS=". / /usr /usr/local /usr/X /usr/X11 /usr/X11R6 /usr/X386 /usr/XFree86 /usr/openwin /etc /opt /var"
+
+#--------------------------------------------
+# Default compiler options
+CCOPT=gcc
+LDCMD=ld
+ARCMD=ar
+
+# default compilation mode
+buildmode=RELEASE
+
+# default prefix dir
+prefix="/usr/local"
+
+# default options
+options=""
+
+
+#--------------------------------------------
+# default OS name
+OSNAME=`uname -s`
+
+case $OSNAME in
+SunOS)
+	PATH=/usr/ucb:$PATH
+	;;
+IRIX) 
+	LIBPOST="32"
+	ALLBASEDIRS="$ALLBASEDIRS /usr/freeware"
+	;;
+NetBSD)
+	ALLBASEDIRS="/usr/pkg /usr/pkg/pthreads /usr/X11R6"
+	prefix="/usr/pkg"
+	;;
+AmigaOS | WarpUP | BeOS)
+	ALLBASEDIRS=""
+	NOPTHREAD=1
+	;;
+QNX)
+	CCCMD=QCC
+	ALLBASEDIRS=""
+	;;
+atheos)
+	ALLBASEDIRS="$ALLBASEDIRS /system"
+	;;
+esac
+
+#--------------------------------------------
+ac_prev=
+for ac_option
+do
+	if [ -n "$ac_prev" ]
+	then
+		eval "$ac_Prev=\$ac_option"
+		ac_prev=
+		continue
+	fi
+
+	case "$ac_option" in
+	-*=*) ac_optarg=`$ECHO "$ac_option" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+	*) ac_optarg= ;;
+	esac
+
+	case "$ac_option" in
+	-help | --help | -\? | --h | -h)
+		$CAT << EOF
+Usage: configure [options]
+Options: [defaults in brackets after descriptions]
+    --help                    print this message.
+    --version                 print the version of configure.
+    --prefix=DIRECTORY        use this directory for installation.
+                              [$prefix]
+    --basedir=DIRECTORY       use this list of directories for searching
+                              the 'include', 'lib' and bin directories
+    --buildmode=MODE          set the build mode (debug/release).
+                              [release]
+    --os=NAME                 use the configuration files for the OS NAME.
+                              [$OSNAME]
+    --cc=COMMAND              use this command for the compiler.
+    --ld=COMMAND              use this command for the linker.
+    --ar=COMMAND              use this command for the archiver.
+    --ccopt=NAME              use the configuration file from compiler NAME.
+                              [$CCOPT]	
+    --make=COMMAND            use this command for make.
+    --disable=[option]        do not check for "option".
+                              "option" can be:
+                                   x11
+                                   termcap
+                                   mysql
+                                   pthreads
+    --enable=[option]         enable optional feature.							
+                              "option" can be:
+                                   gtk
+                                   motif
+                                   sdl
+    --with-sdl-lib=DIRECTORY  use this directory for the SDL libraries
+    --with-sdl-inc=DIRECTORY  use this directory for the SDL includes
+EOF
+		exit 0;
+		;;
+	--version)
+		$ECHO \$Revision: 1.2 $
+		exit 0;
+		;;
+	--buildmode=*)
+		case $ac_optarg in
+		debug)
+			DEBUG=1
+			buildmode=DEBUG
+			;;
+		release)
+			buildmode=RELEASE
+			;;
+		*)
+			$ECHO "Unknown build mode. Must be 'debug' or 'release'"
+			exit 0
+			;;
+		esac	
+		;;	
+	--cc=*)
+		CCCMD=$ac_optarg
+		CCOPT=$ac_optarg
+		;;
+	--ld=*)
+		LDCMD=$ac_optarg
+		;;
+	--ar=*)
+		ARCMD=$ac_optarg
+		;;
+	--ccopt=*)
+		CCOPT=$ac_optarg
+		;;
+	--make=*)
+		MAKECMD=$ac_optarg
+		;;
+	--os=*)
+		OSNAME=$ac_optarg
+		;;
+	--prefix=*)
+		prefix=$ac_optarg
+		;;	
+	--enable=*)
+		disoption=$ac_optarg
+		case "$disoption" in
+		sdl | SDL)
+			HAVE_SDL="-DHAVE_SDL "
+			SDL_LIBS=" -lSDL-1.1 "
+			;;
+		*)
+			$ECHO "Invalid option, try --help"
+			exit 0
+			;;
+		esac
+		;;
+	--disable=*)
+		disoption=$ac_optarg
+		case "$disoption" in
+		x11 | X11)
+			NOX11=1
+			NOGTK=1
+			NOMOTIF=1
+			;;
+		termcap)
+			NOTERMCAP=1
+			;;
+		mysql)
+			NOMYSQL=1
+			;;
+		pthreads)
+			NOPTHREAD=1
+			;;
+		gtk | GTK)
+			NOGTK=1
+			;;
+		motif | Motif)
+			NOMOTIF=1
+			;;
+		*)
+			$ECHO "Invalid option, try --help"
+			exit 0
+			;;
+		esac	
+		;;
+	--with-sdl-lib=*)
+		SDL_LIBS=" -lSDL-1.1 -L$ac_optarg "
+		;;
+	--with-sdl-inc=*)
+		SDL_INCS=" -I$ac_optarg "
+		;;
+	--basedir=*)
+		ALLBASEDIRS="$ac_optarg"
+		prefix="$ac_optarg"
+		DEPEND_SYSINCS="$ac_optarg"
+		;;
+	*)
+		$ECHO "Invalid option \"$ac_option\", try --help"
+		exit 0
+		;;
+	esac
+
+done
+
+
+#--------------------------------------------
+for dirname in $ALLBASEDIRS; do
+	$TEST "$dirname" = "/" && dirname=""
+	$TEST -d "$dirname/bin" && PATH="$PATH:$dirname/bin"
+	$TEST -d "$dirname/sbin" && PATH="$PATH:$dirname/sbin"
+	$TEST -d "$dirname/include" && INCLUDES="$INCLUDES -I$dirname/include"
+	if [ ! -z "$dirname" ]
+	then
+		$TEST -d "$dirname/lib$LIBPOST" && LIBS="$LIBS -L$dirname/lib$LIBPOST"
+	fi
+done
+
+
+#--------------------------------------------
+# install target directories
+prefix_bin=$prefix/bin
+prefix_libs=$prefix/lib
+prefix_include=$prefix/include/nmo
+
+
+#--------------------------------------------
+alldirs=`$ECHO $PATH | sed 's/:/ /g'`
+
+for dirname in $ALLBASEDIRS; do
+	$TEST "$dirname" = "$prefix" && PREFIXOK=1
+done
+if [ -z "$PREFIXOK" -a "$ALLBASEDIRS" != "" ]
+then
+	PATH="$PATH:$prefix/bin:$prefix/sbin"
+	INCLUDES="-I$prefix/include $INCLUDES"
+	LIBS="-L$prefix/lib$LIBPOST $LIBS"
+fi
+
+
+#--------------------------------------------
+# processor type
+CPUNAME=`uname -m`
+
+#--------------------------------------------
+case $OSNAME in
+AmigaOS)
+	INCLUDES=
+	CHECKAMIGASYSINC=1
+	NOPTHREAD=1
+	NOTERMCAP=1
+	NOX11=1
+	HAVE_INTERFACE=1
+	;;
+WarpUP)
+	CPUNAME=powerpc
+	INCLUDES=
+	CHECKAMIGASYSINC=1
+	NOPTHREAD=1
+	NOTERMCAP=1
+	NOX11=1
+	HAVE_INTERFACE=1
+	;;
+SunOS)
+	INCLUDES=
+	;;
+FreeBSD | NetBSD)
+	CPUNAME=`uname -p`
+	;;
+QNX | BeOS)
+    NOPTHREAD=1
+	NOX11=1
+	HAVE_INTERFACE=1
+	;;
+atheos)
+    NOPTHREAD=1
+	NOTERMCAP=1
+	NOX11=1
+	HAVE_INTERFACE=1
+	;;
+Linux)
+	DEPEND_SYSINCS="/usr/lib $DEPEND_SYSINCS"
+esac
+
+
+#--------------------------------------------
+# Extract the command name
+cmdname=`basename $0`
+
+# Extract the command directory (ie NMO build directory)
+basedir=`dirname "$0"`
+if [ "$basedir" != "." -a "$basedir" != "" ]
+then
+	path=$basedir
+else
+	path=$PWD
+	if [ ! -f $path/$cmdname ]
+	then
+		$ECHO "can\'t find $cmdname in $path"
+		exit 1
+	fi
+fi
+
+# NMO base directory
+NMODIR=$path
+
+# NMO build directory
+if [ ! -f $NMODIR/build/$OSNAME/Makefile.$CCOPT ]
+then
+	$ECHO "Unsupported OS '$OSNAME' for compiler options $CCOPT."
+	$ECHO "Try the --ccopt or the --os options."
+	exit 1
+fi
+
+
+#--------------------------------------------
+# creating empty config.h file
+datecre=`date`
+CONFIG_H=nmo/config.h
+$CAT > $CONFIG_H <<EOF
+/* File generated by configure
+   $datecre
+*/   
+ 
+#ifndef _NMO_CONFIG_H_
+#define _NMO_CONFIG_H_
+
+#define LC_ENG 1
+EOF
+$ECHO "#define `$CAT build/$OSNAME/OSNAME` 1" >> $CONFIG_H
+
+
+#--------------------------------------------
+if [ ! -z "$CHECKAMIGASYSINC" ]
+then
+	$ECHON "Searching for AmigaOS include files..."
+	for dirname in $ALLBASEDIRS; do
+   		$TEST -z "$dirname" && dirname=.
+		if [ -r "$dirname/sys-include/exec/types.h" -o -r "$dirname/include/exec/types.h" -o -r "$dirname/m68k-amigaos/sys-include/exec/types.h" -o -r "$dirname/m68k-amigaos/include/exec/types.h" ]
+		then
+			AMIGASYSINC=1
+			break
+		fi
+	done
+	if [ -z "$AMIGASYSINC" ]
+	then
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+		$ECHO "System include files are copyright Amiga Inc and can be found on the Developper CD."
+		exit 1
+	else
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+	fi
+fi	
+
+
+#--------------------------------------------
+for ccname in "$CCCMD" "gcc" "pgcc" "g++" "c++" "cxx" "cc"; do
+	$TEST -z "$ccname" && continue;
+	$ECHON "checking for $ccname... "
+	$ECHO "checking for $ccname... " >> $LOGFILE
+	for dirname in $alldirs; do
+   		$TEST -z "$dirname" && dirname=.
+		if [ -x "$dirname/$ccname" ]
+		then
+			CCCMD=$ccname
+			break
+    	fi
+	done
+	if [ -z "$CCCMD" ]
+	then
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+	else
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+		break
+	fi
+done
+if [ -z "$CCCMD" ]
+then
+	$ECHO "No compiler found !"
+	exit 1
+fi
+
+
+#--------------------------------------------
+$ECHON "checking if $CCCMD can compile C++ with namespaces... "
+$ECHO "checking if $CCCMD can compile C++ with namespaces... " >> $LOGFILE
+$CAT > configure.dummy.cpp <<EOF
+namespace NMConfigureDummy {
+	class CConfigureDummy { public: CConfigureDummy(){}; };
+};
+using namespace NMConfigureDummy;
+int main(void) {
+	CConfigureDummy confdummy;
+	return 0;
+};
+EOF
+$CCCMD $CFLAGS -o configure.dummy.out configure.dummy.cpp 1>> $LOGFILE 2>> $LOGFILE
+if [ $? -ne 0 ]
+then
+	rm -f configure.dummy.cpp 2>> $LOGFILE
+	$ECHO "failed."
+	exit 1
+else
+	$ECHO "ok."
+	$ECHO "ok." >> $LOGFILE
+fi
+rm -f configure.dummy.cpp 2>> $LOGFILE
+rm -f configure.dummy.out 2>> $LOGFILE
+
+
+#--------------------------------------------
+for mkcmd in "$MAKECMD" "gmake" "make" "pmake"; do
+	$TEST -z "$mkcmd" && continue
+	$ECHON "checking for $mkcmd... "
+	$ECHO "checking for $mkcmd... " >> $LOGFILE
+	for dirname in $alldirs; do
+   		$TEST -z "$dirname" && dirname=.
+		if [ -f $dirname/$mkcmd ]
+		then
+			MAKECMD=$mkcmd
+		    break
+		fi
+	done
+	if [ -z "$MAKECMD" ]
+	then
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+	else
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+		break
+	fi
+done
+if [ -z "$MAKECMD" ]
+then
+	$ECHO "no 'make' command found !"
+	exit 1
+fi
+
+$ECHON "checking if $MAKECMD is a GNU make... "
+$ECHO "checking if $MAKECMD is a GNU make... " >> $LOGFILE
+$CAT > configure.dummy.mak <<EOF
+DUMMYVAR=1
+ifdef DUMMYVAR
+all:
+else
+endif
+EOF
+$MAKECMD --no-builtin-rules --no-print-directory --silent --file=configure.dummy.mak 1>> $LOGFILE 2>> $LOGFILE
+if [ $? -ne 0 ]
+then
+	$ECHO "failed."
+	$ECHO "$MAKECMD is not GNU make compatible !"
+	exit 1
+else
+	$ECHO "ok."
+	$ECHO "ok." >> $LOGFILE
+fi
+rm -f configure.dummy.mak 2>> $LOGFILE
+
+
+#--------------------------------------------
+if [ -z "$NOX11" ]
+then
+	$ECHON "checking for X11... "
+	$ECHON "checking for X11... " >> $LOGFILE
+	for dirname in $ALLBASEDIRS; do
+		$TEST -r "$dirname/include/X11/Xlib.h" && X11_INCLUDE="$dirname/include/X11"
+		$TEST -r "$dirname/lib/libX11.so" && X11_LIB="$dirname/lib"
+	done
+	if [ -z "$X11_INCLUDE$X11_LIB" ]
+	then
+		NOGTK=1
+		NOMOTIF=1
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+	else
+		HAVE_X11=1
+		HAVE_INTERFACE=1
+		X11_LIBS="-lX11 -lXt "
+		options="$options X11"
+		$ECHO "#define HAVE_X11 1" >> $CONFIG_H
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+	fi
+fi
+
+#--------------------------------------------
+if [ -z "$NOMOTIF" ]
+then
+	$ECHON "checking for Motif... "
+	$ECHO "checking for Motif... " >> $LOGFILE
+	for dirname in $ALLBASEDIRS; do
+		$TEST -r "$dirname/include/Xm/Xm.h" && XM_INCLUDE="$dirname/include/Xm"
+		$TEST -r "$dirname/lib/libXm.so" && XM_LIB="$dirname/lib"
+	done
+	if [ -z "$XM_INCLUDE$XM_LIB" ]
+	then
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+	else
+		NOGTK=1
+		HAVE_MOTIF=1
+		MOTIF_LIBS="-lXm "
+		options="$options Motif"
+		$ECHO "#define HAVE_MOTIF 1" >> $CONFIG_H
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+	fi
+fi
+
+#--------------------------------------------
+if [ -z "$NOGTK" ]
+then
+	for gtkconfig in "gtk-config" "gtk12-config"; do
+		$ECHON "checking for GTK+ with $gtkconfig... "
+		$ECHO "checking for GTK+ with $gtkconfig... " >> $LOGFILE
+		for dirname in $alldirs; do
+   			$TEST -z "$dirname" && dirname=.
+			if [ -x "$dirname/$gtkconfig" ]
+			then
+				HAVE_GTK=1
+				break
+	    	fi
+		done
+		if [ -z "$HAVE_GTK" ]
+		then
+			$ECHO "not found."
+			$ECHO "not found." >> $LOGFILE
+		else
+			options="$options GTK+"
+			GTK_INCS="`$gtkconfig --cflags` "
+			DEPEND_SYSINCS="$GTK_INCS $DEPEND_SYSINCS"
+			GTK_LIBS="`$gtkconfig --libs | tr ' ' '\n' | grep '^\-lgdk[^_]*' | tr '\n' ' '` "
+			$ECHO "#define HAVE_GTK 1" >> $CONFIG_H
+			$ECHO "ok."
+			$ECHO "ok." >> $LOGFILE
+			break
+		fi
+	done
+fi
+
+
+
+#--------------------------------------------
+if [ -z "$NOTERMCAP" ]
+then
+	$ECHON "checking for ncurses libs & headers... "
+	$ECHO "checking for ncurses libs & headers... " >> $LOGFILE
+	$CAT > configure.dummy.c <<EOF
+#include <stdio.h>
+#include <curses.h>
+#include <term.h>
+#include <termios.h>
+int main(void) { return 0; };
+EOF
+	for libname in "ncurses" "curses"; do
+		$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.c $LIBS -l$libname 1>> $LOGFILE 2>> $LOGFILE
+		if [ $? -eq 0 ]
+		then
+			HAVE_NCURSES=1
+			LIBS="$LIBS -l$libname"
+			options="$options ncurses"
+			$ECHO "#define HAVE_NCURSES 1" >> $CONFIG_H
+			break
+		fi
+	done
+	if [ -z "$HAVE_NCURSES" ]
+	then
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+	else
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+	fi
+	rm -f configure.dummy.c 2>> $LOGFILE
+	rm -f configure.dummy.out 2>> $LOGFILE
+fi
+
+#--------------------------------------------
+if [ -z "$NOTERMCAP" ]
+then
+	if [ -z "$HAVE_NCURSES" ]
+	then
+		$ECHON "checking for the old termcap libs & headers... "
+		$ECHO "checking for the old termcap libs & headers... " >> $LOGFILE
+		$CAT > configure.dummy.c <<EOF
+#include <stdio.h>
+#include <termcap.h>
+#include <termios.h>
+int main(void) { return 0; };
+EOF
+		$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.c $LIBS -ltermcap 1>> $LOGFILE 2>> $LOGFILE
+		if [ $? -ne 0 ]
+		then
+			$ECHO "not found."
+			$ECHO "not found." >> $LOGFILE
+			$ECHO "Pleasy install ncurses or termcap developement libraries and include files."
+			exit 1
+		else
+			HAVE_TERMCAP=1
+			LIBS="$LIBS -ltermcap"
+			options="$options termcap"
+			$ECHO "#define HAVE_TERMCAP 1" >> $CONFIG_H
+			$ECHO "ok."
+			$ECHO "ok." >> $LOGFILE
+		fi
+		rm -f configure.dummy.c 2>> $LOGFILE
+		rm -f configure.dummy.out 2>> $LOGFILE
+	fi
+fi
+
+
+#--------------------------------------------
+if [ -z "$NOMYSQL" ]
+then
+	$ECHON "checking for MySQL headers... "
+	$ECHO "checking for MySQL headers... " >> $LOGFILE
+	$CAT > configure.dummy.c <<EOF
+#include <mysql/mysql.h>
+int main(void) { return 0; };
+EOF
+	$CCCMD $INCLUDES -o configure.dummy.out -c configure.dummy.c 1>> $LOGFILE 2>> $LOGFILE
+	if [ $? -ne 0 ]
+	then
+		$ECHO "not found, will not build MySQL Dynamic Module."
+		$ECHO "not found." >> $LOGFILE
+	else
+		HAVE_MYSQL=1
+		options="$options MySQL"
+		$ECHO "#define HAVE_MYSQL 1" >> $CONFIG_H
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+	fi
+	rm -f configure.dummy.c 2>> $LOGFILE
+	rm -f configure.dummy.out 2>> $LOGFILE
+fi
+
+
+#--------------------------------------------
+if [ -z "$NOPTHREAD" ]
+then
+    $ECHON "checking for pthread.h... "
+	$ECHO "checking for pthread.h... " >> $LOGFILE
+    for dirname in $ALLBASEDIRS; do
+		$TEST -r "$dirname/include/pthread.h" && PTHREAD_INCLUDE="$dirname/include"
+    done
+    if [ -z "$PTHREAD_INCLUDE" ]
+    then
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+		if [ "`uname`" = "NetBSD" ]
+		then
+			$ECHO "You need to install the Pth library for pthread emulation support."
+			exit 1
+		fi
+    else
+		HAVE_PTHREAD=1
+		options="$options pthreads"
+		$ECHO "#define HAVE_PTHREAD 1" >> $CONFIG_H
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+    fi
+fi
+
+
+#--------------------------------------------
+$ECHON "checking if sys_errlist[] is declared in errno.h... "
+$ECHO "checking if sys_errlist[] is declared in errno.h... " >> $LOGFILE
+$CAT > configure.dummy.cpp <<EOF
+#include <errno.h>
+int main(void) { char *dum = (char*)sys_errlist[0]; return 0; };
+EOF
+$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.cpp 1>> $LOGFILE 2>> $LOGFILE
+if [ $? -ne 0 ]
+then
+	$ECHO "no."
+else
+	HAVE_SYSERRLIST=1
+	$ECHO "#define HAVE_SYSERRLIST 1" >> $CONFIG_H
+	$ECHO "yes."
+fi
+rm -f configure.dummy.cpp 2>> $LOGFILE
+rm -f configure.dummy.out 2>> $LOGFILE
+
+
+#--------------------------------------------
+$ECHON "checking for POSIX clock_gettime() with CLOCK_REALTIME... "
+$ECHO "checking for POSIX clock_gettime() with CLOCK_REALTIME... " >> $LOGFILE
+$CAT > configure.dummy.cpp <<EOF
+#include <sys/types.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <time.h>
+int main(void) { timespec footime; clock_gettime(CLOCK_REALTIME, &footime); return 0; };
+EOF
+$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.cpp 1>> $LOGFILE 2>> $LOGFILE
+if [ $? -ne 0 ]
+then
+	$ECHO "not found."
+	$ECHO "not found." >> $LOGFILE
+else
+	HAVE_CLOCKGETTIME=1
+	$ECHO "#define HAVE_CLOCKGETTIME 1" >> $CONFIG_H
+	$ECHO "ok."
+	$ECHO "ok." >> $LOGFILE
+fi
+rm -f configure.dummy.cpp 2>> $LOGFILE
+rm -f configure.dummy.out 2>> $LOGFILE
+
+
+#--------------------------------------------
+if [ -z "$HAVE_CLOCKGETTIME" ]
+then
+	$ECHON "checking for BSD gettimeofday()..."
+	$ECHO "checking for BSD gettimeofday()..." >> $LOGFILE
+	$CAT > configure.dummy.cpp <<EOF
+#include <sys/types.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <time.h>
+int main(void) { timeval footime; gettimeofday(&footime, NULL); return 0; };
+EOF
+	$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.cpp 1>> $LOGFILE 2>> $LOGFILE
+	if [ $? -ne 0 ]
+	then
+		$ECHO "not found."
+		$ECHO "not found." >> $LOGFILE
+	else
+		HAVE_GETTIMEOFDAY=1
+		$ECHO "#define HAVE_GETTIMEOFDAY 1" >> $CONFIG_H
+		$ECHO "ok."
+		$ECHO "ok." >> $LOGFILE
+	fi
+	rm -f configure.dummy.cpp 2>> $LOGFILE
+	rm -f configure.dummy.out 2>> $LOGFILE
+fi
+
+
+#--------------------------------------------
+$ECHON "checking for snprintf()... "
+$ECHO "checking for snprintf()... " >> $LOGFILE
+	$CAT > configure.dummy.cpp <<EOF
+#include <stdio.h>
+#include <string.h>
+int main(void) { char *n = NULL; snprintf(n, 0, "%d", 0); return 0; };
+EOF
+$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.cpp 1>> $LOGFILE 2>> $LOGFILE
+if [ $? -ne 0 ]
+then
+	$ECHO "not found."
+	$ECHO "not found." >> $LOGFILE
+else
+	HAVE_SNPRINTF=1
+	$ECHO "#define HAVE_SNPRINTF 1" >> $CONFIG_H
+	$ECHO "ok."
+	$ECHO "ok." >> $LOGFILE
+fi
+rm -f configure.dummy.cpp 2>> $LOGFILE
+rm -f configure.dummy.out 2>> $LOGFILE
+
+
+#--------------------------------------------
+$ECHON "checking for vsnprintf()... "
+$ECHO "checking for vsnprintf()... " >> $LOGFILE
+	$CAT > configure.dummy.cpp <<EOF
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+void testfct (const char* fmt, ...) {
+va_list arg; va_start(arg, fmt);
+char *n = NULL; vsnprintf(n, 0, "%d", arg);
+va_end(arg); }
+int main(void) { testfct ("%d", 0); return 0; }
+EOF
+$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.cpp 1>> $LOGFILE 2>> $LOGFILE
+if [ $? -ne 0 ]
+then
+	$ECHO "not found."
+	$ECHO "not found." >> $LOGFILE
+else
+	HAVE_VSNPRINTF=1
+	$ECHO "#define HAVE_VSNPRINTF 1" >> $CONFIG_H
+	$ECHO "ok."
+	$ECHO "ok." >> $LOGFILE
+fi
+rm -f configure.dummy.cpp 2>> $LOGFILE
+rm -f configure.dummy.out 2>> $LOGFILE
+
+
+#--------------------------------------------
+$ECHON "checking if fpos_t have a __pos field... "
+$ECHO "checking if fpos_t have a __pos field... " >> $LOGFILE
+	$CAT > configure.dummy.cpp <<EOF
+#include <stdio.h>
+void main(void) { fpos_t pos; pos.__pos = 0; };
+EOF
+$CCCMD $INCLUDES -o configure.dummy.out configure.dummy.cpp 1>> $LOGFILE 2>> $LOGFILE
+if [ $? -ne 0 ]
+then
+	$ECHO "no."
+else
+	$ECHO "yes."
+	$ECHO "#define HAVE_FPOS_T 1" >> $CONFIG_H
+fi
+rm -f configure.dummy.cpp 2>> $LOGFILE
+rm -f configure.dummy.out 2>> $LOGFILE
+
+
+#--------------------------------------------
+DEPEND_SYSINCS="$INCLUDES $DEPEND_SYSINCS"
+$ECHO "You can check for errors in config.log"
+
+
+#--------------------------------------------
+$ECHO
+$ECHO "creating $CONFIG_H..."
+$ECHO >> $CONFIG_H
+$ECHO "#endif /* _NMO_CONFIG_H_ */" >> $CONFIG_H
+
+#--------------------------------------------
+target=Makefile.nmo.mk
+$ECHO "creating $target..."
+rm -f $target
+$CAT > $target <<EOF
+# File generated by configure
+# $datecre
+#
+NMODIR=$NMODIR
+CPPDIR=src
+MAKDIR=build/\$(OSNAME)
+EOF
+nmocflags=1
+MKDEP=build/tools/mkdep
+INCDIR=
+LIBDIR=
+generate_makefile_nmo_mk
+
+
+#--------------------------------------------
+target=nmo/Makefile.nmo.mk
+$ECHO "creating $target..." 
+rm -f $target
+$CAT > $target <<EOF
+# File generated by configure
+# $datecre
+#
+NMODIR=$prefix
+EOF
+nmocflags=
+MKDEP=bin/nmo-mkdep
+INCDIR=/include
+LIBDIR=/lib
+DEPEND_SYSINCS="\$(NMODIR)$INCDIR $DEPEND_SYSINCS"
+generate_makefile_nmo_mk
+
+
+#--------------------------------------------
+target=Makefile
+$ECHO "creating $target..."
+rm -f $target
+$CAT > $target <<EOF
+#!/bin/sh
+# File generated by configure
+# $datecre
+#
+
+EOF
+$CAT build/Makefile.in >> $target
+
+#--------------------------------------------
+target=nmo-sdk-config
+$ECHO "creating $target..."
+rm -f $target
+$CAT > $target <<EOF
+#!/bin/sh
+# File generated by configure
+# $datecre
+#
+nmosdkprefix=$prefix
+nmosdkmakefile=$prefix_include/Makefile.nmo.mk
+
+EOF
+$CAT build/nmo-sdk-config.in >> $target
+chmod a+r $target
+chmod a+x $target
+
+
+#--------------------------------------------
+target=install.sh
+$ECHO "creating $target..."
+rm -f $target
+$CAT > $target <<EOF
+#!/bin/sh
+# File generated by configure
+# $datecre
+#
+PATH=/usr/ucb:$PATH
+INSTALLDIRS="install -d"
+INSTALLFILE="install -c"
+PREFIX=$prefix
+
+EOF
+$CAT build/install.in >> $target
+
+touch .depend
+
+#--------------------------------------------
+$ECHO
+$ECHO "Configuration:"
+$ECHO "  arch           = $OSNAME"
+$ECHO "  options        =$options"
+$ECHO "  build mode     = $buildmode"
+$ECHO "  compiler       = '$CCCMD' with $CCOPT options"
+$ECHO "  make command   = '$MAKECMD'"
+$ECHO "  targets        = '', 'depend', 'all', 'clean', 'distclean', 'install'"
+$ECHO "  install prefix = $prefix"
+
+case $OSNAME in
+AmigaOS)
+	$ECHO
+	$ECHO "!! AmigaOS user: check the size of the CLI/Shell stack, it must be at least 1 Mb for GCC to work correctly."
+	;;
+WarpUP)
+	$ECHO
+	$ECHO "!! AmigaOS user: check the size of the CLI/Shell stack, it must be at least 1 Mb for GCC to work correctly."
+	$ECHO "!! WarpUP user: do not forget to run elf2exe2 on executables after compilation."
+	;;
+esac
+
+$ECHO
+exit 0

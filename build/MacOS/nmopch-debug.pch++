@@ -1,0 +1,14 @@
+#define _NMO_BUILD_PCH
+//#define HAVE_SDL 1
+#pragma precompile_target "nmopch-debug.mch"
+#define TARGET_API_MAC_CARBON 1
+#include <Carbon.h>
+#include <time.h>
+#include <unix.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#undef _POSIX
+#undef _NMO_BUILD_PCH

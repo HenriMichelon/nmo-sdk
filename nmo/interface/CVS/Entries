@@ -1,0 +1,22 @@
+/DefaultPal.h/1.1.1.1/Thu Nov 21 21:36:12 2002//
+/IDisplay.hpp/1.1.1.1/Thu Nov 21 21:36:12 2002//
+/IRect.hpp/1.1.1.1/Thu Nov 21 21:36:12 2002//
+/IWindow.hpp/1.1.1.1/Thu Nov 21 21:36:12 2002//
+/ICachedChar.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IColorSpace.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/ICursor.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IDisplayChunky.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IFont.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IFontEngine.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IKeyb.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IMouse.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IPalette.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IPixmap.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IRGBColor.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IScreen.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IStdDialog.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IStdDialogFile.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IStdDialogFileOpen.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IStdDialogFileSave.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/IStdDialogMessage.hpp/1.2/Fri Nov 29 14:26:06 2002//
+D

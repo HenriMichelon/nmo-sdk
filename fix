@@ -1,0 +1,8 @@
+#!/bin/sh
+rm -f /tmp/$$.files /tmp/$$.dirs
+find . -type d -print -exec chmod 755 {} \; | wc -l > /tmp/$$.files
+echo `cat /tmp/$$.files` files
+find . -type f -print -exec chmod 644 {} \; | wc -l > /tmp/$$.dirs
+echo `cat /tmp/$$.dirs` directories
+find . -name "configure" -exec chmod 755 {} \;
+rm -f /tmp/$$.files /tmp/$$.dirs

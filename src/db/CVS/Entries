@@ -1,0 +1,16 @@
+D/modules////
+/DBDatabaseMySQL.cpp/1.1.1.1/Thu Nov 21 21:36:16 2002//
+/DBDatabaseMySQL.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDatabaseODBC.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDatabaseODBC.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDatabasePostgres.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDatabasePostgres.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDatabaseSQLServer.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDatabaseSQLServer.hpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDynaset.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBSet.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBSnapshot.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBTable.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBType.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBValue.cpp/1.2/Fri Nov 29 14:26:06 2002//
+/DBDatabase.cpp/1.1.1.1/Fri Nov 29 14:16:27 2002//

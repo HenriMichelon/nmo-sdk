@@ -1,0 +1,105 @@
+#define _NMO_BUILD_PCH
+#pragma precompile_target "nmopch-release.mch"
+#define TARGET_API_MAC_CARBON 1
+#if TARGET_API_MAC_CARBON == 1
+	#include <Carbon.h>
+#else
+	#include <Aliases.h>
+	#include <Appearance.h>
+	#include <AppleEvents.h>
+	#include <AppleGuide.h>
+	#include <AppleScript.h>
+	#include <AppleTalk.h>
+	#include <ASDebugging.h>
+	#include <ASRegistry.h>
+	#include <StandardFile.h>
+	#include <CodeFragments.h>
+	#include <Collections.h>
+	#include <ColorPicker.h>
+	#include <Components.h>
+	#include <ConditionalMacros.h>
+	#include <ControlDefinitions.h>	
+	#include <Controls.h>
+	#include <DateTimeUtils.h>
+	#include <Devices.h>
+	#include <Dialogs.h>
+	#include <DiskInit.h>
+	#include <Displays.h>
+	#include <Drag.h>
+	#include <Endian.h>
+	#include <EPPC.h>
+	#include <Events.h>
+	#include <Files.h>
+	#include <FileTypesAndCreators.h>
+	#include <Finder.h>
+	#include <FinderRegistry.h>
+	#include <FixMath.h>
+	#include <Folders.h>
+	#include <Fonts.h>
+	#include <Gestalt.h>
+	#include <HFSVolumes.h>
+	#include <Icons.h>
+	#include <ImageCompression.h>
+	#include <IntlResources.h>
+	#include <InternetConfig.h>
+	#include <Lists.h>
+	#include <LowMem.h>
+    #include <MacErrors.h>
+	#include <MacHelp.h>
+	#include <MacMemory.h>
+	#include <MacTypes.h>
+	#include <MacWindows.h>
+	#include <Menus.h>
+	#include <MixedMode.h>
+	#include <Movies.h>
+	#include <NameRegistry.h>
+	#include <Navigation.h>	
+	#include <Notification.h>
+	#include <NumberFormatting.h>
+	#include <OSA.h>
+	#include <OSAComp.h>
+	#include <OSAGeneric.h>
+	#include <OSUtils.h>
+	#include <Palettes.h>
+	#include <Patches.h>
+	#include <PPCToolbox.h>
+	#include <Printing.h>
+	#include <Processes.h>
+	#include <Quickdraw.h>
+	#include <QuickdrawText.h>
+	#include <Resources.h>
+	#include <Scrap.h>
+	#include <Script.h>
+	#include <SegLoad.h>
+	#include <Sound.h>
+	#include <StandardFile.h>
+	#include <StringCompare.h>
+	#include <TextCommon.h>
+	#include <TextEdit.h>
+	#include <TextUtils.h>
+	#include <Threads.h>
+	#include <Timer.h>
+	#include <ToolUtils.h>
+	#include <Translation.h>
+	#include <TranslationExtensions.h>
+	#include <Traps.h>
+	#include <UTCUtils.h>
+	#include <Video.h>
+#endif
+#include <time.h>
+#include <unix.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#undef _POSIX
+#include <nmo/NMO.hpp>
+#include <nmo/Interface.hpp>
+#include <nmo/Net.hpp>
+#include <nmo/Thread.hpp>
+#include <nmo/Sound.hpp>
+#include <nmo/addons/GUI.hpp>
+#include <nmo/addons/Shell.hpp>
+#include <nmo/addons/Digest.hpp>
+#undef _NMO_BUILD_PCH

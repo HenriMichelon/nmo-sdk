@@ -1,0 +1,24 @@
+/* $Id
+   Functions we need to import for libungif.h
+   Used for Modungif.hpp & Modungif.cpp generation
+*/   
+MODULENAME=ungif
+INCLUDE
+#ifdef HAVE_LIBUNGIF
+extern "C" {
+#include <gif_lib.h>
+}
+#else
+#include "../giflib/gif_lib.h"
+#endif
+DECL
+int GifLastError(void);
+GifFileType *DGifOpenFileName(const char *GifFileName);
+GifFileType *DGifOpenFileHandle(int GifFileHandle);
+int DGifSlurp(GifFileType *GifFile);
+int DGifGetScreenDesc(GifFileType *GifFile);
+int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
+int DGifGetImageDesc(GifFileType *GifFile);
+int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, int GifLineLen);
+int DGifGetPixel(GifFileType *GifFile, GifPixelType GifPixel);
+

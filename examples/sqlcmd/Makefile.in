@@ -1,0 +1,31 @@
+EXENAME=sqlcmd
+SRCDIR=.
+
+OBJECTS=$(SRCDIR)/$(EXENAME).o \
+		$(SRCDIR)/commands.o \
+		$(SRCDIR)/session.o \
+		$(SRCDIR)/statements.o \
+
+				
+####### Build rules
+.SUFFIXES: .cpp .o
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+	
+all: $(OBJECTS)
+	$(CC) $(OBJECTS) -o $(EXENAME)  -l$(SHELLLIB) $(LFLAGS)
+
+install:
+	$(INSTALLDIRS) $(prefix)
+	$(INSTALLFILE) $(EXENAME) "$(prefix)/bin"
+
+clean: 
+	$(RM) $(OBJECTS) $(EXENAME)
+
+distclean: clean
+	$(RM) Makefile
+
+depend:
+	$(MKDEP) $(CFLAGS) *.cpp
+

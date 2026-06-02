@@ -1,0 +1,208 @@
+# $Id: Makefile.in,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $
+
+include Makefile.nmo.mk
+include build/Makefile.objs
+include build/$(OSNAME)/Makefile
+
+all: ; @$(MAKE) all-norules
+
+nmo: ; @$(MAKE) nmo-norules
+
+core: ; @$(MAKE) core-norules
+
+interface: 
+ifdef HAVE_INTERFACE
+	@$(MAKE) interface-norules
+endif	
+
+gui: 
+ifdef HAVE_INTERFACE
+	@$(MAKE) gui-norules
+endif	
+
+crypt: ; @$(MAKE) crypt-norules
+
+shell: ; @$(MAKE) shell-norules
+
+all-norules: nmo-norules addons
+
+nmo-norules: core-norules interface
+
+addons: crypt-norules shell-norules gui
+
+clean: core-clean interface-clean crypt-clean shell-clean gui-clean
+
+distclean: clean
+	$(RM) Makefile Makefile.nmo.mk nmo/Makefile.nmo.mk \
+	nmo/config.h "nmo-sdk-config" config.log install.sh .depend
+	
+install:
+	@sh install.sh
+
+depend:
+	$(MKDEP) -d $(INCDIR) $(CFLAGS) \
+			src/*.cpp \
+			src/base/*.cpp \
+			src/base/regex/*.c \
+			src/datatypes/*.cpp \
+			src/datatypes/zlib/*.c \
+			src/datatypes/libpng/*.c \
+			src/datatypes/modules/*.cpp \
+			src/db/*.cpp \
+			src/db/modules/*.cpp \
+			src/interface/*.cpp \
+			src/interface/modules/*.cpp \
+			src/net/*.cpp \
+			src/sys/*.cpp \
+			src/sound/*.cpp \
+			src/thread/*.cpp \
+			src/addons/digest/*.cpp \
+			src/addons/shell/*.cpp \
+			src/addons/gui/*.cpp
+
+
+##### Implicit Rules #####################################################
+.SUFFIXES:
+
+%.o: %.c					
+	$(CC) $(CFLAGS) $(SO_CFLAGS) -c -o $@ $<
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) $(SO_CFLAGS) -c -o $@ $<
+
+
+##### CORE library #####################################################
+core-norules: lib$(MAINLIB).a lib$(MAINLIB).so
+					   
+lib$(MAINLIB).a: $(OBJECTS) $(CORE_OBJECTS)
+	$(ARR) $@ $?
+	$(ARS) $@
+					
+lib$(MAINLIB).so:  $(OBJECTS) $(CORE_OBJECTS)
+ifdef SO_CC
+ifdef SONAME
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@.$(SDKVER) $(SONAME) $@.$(SDKVER)
+	$(LN) $@.$(SDKVER) $@
+else
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@
+endif
+endif	
+
+core-clean:
+	$(RM) $(OBJECTS) $(CORE_OBJECTS) lib$(MAINLIB).a
+ifdef SO_CC
+	$(RM) lib$(MAINLIB).so lib$(MAINLIB).so.$(SDKVER)
+endif
+
+					
+##### INTERFACE library #####################################################
+interface-norules: lib$(IFACELIB).a lib$(IFACELIB).so
+
+lib$(IFACELIB).a: $(INTERFACE_OBJECTS)
+ifdef HAVE_INTERFACE
+	$(ARR) $@ $?
+	$(ARS) $@
+endif
+					
+lib$(IFACELIB).so:  $(INTERFACE_OBJECTS)
+ifdef HAVE_INTERFACE
+ifdef SO_CC
+ifdef SONAME
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@.$(SDKVER) $(SONAME) $@.$(SDKVER)
+	$(LN) $@.$(SDKVER) $@
+else
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@
+endif
+endif	
+endif
+
+interface-clean:
+ifdef HAVE_INTERFACE
+	$(RM) $(INTERFACE_OBJECTS) lib$(IFACELIB).a
+ifdef SO_CC
+	$(RM) lib$(IFACELIB).so lib$(IFACELIB).so.$(SDKVER)
+endif
+endif
+
+
+##### CRYPT/DIGEST library #####################################################
+crypt-norules: lib$(CRYPTLIB).a lib$(CRYPTLIB).so
+
+lib$(CRYPTLIB).a: $(CRYPT_OBJECTS)
+	$(ARR) $@ $?
+	$(ARS) $@
+
+lib$(CRYPTLIB).so: $(CRYPT_OBJECTS)
+ifdef SO_CC
+ifdef SONAME
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@.$(SDKVER) $(SONAME) $@.$(SDKVER)
+	$(LN) $@.$(SDKVER) $@
+else
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@
+endif
+endif
+ 
+crypt-clean:
+	$(RM) $(CRYPT_OBJECTS) lib$(CRYPTLIB).a
+ifdef SO_CC
+	$(RM) lib$(CRYPTLIB).so lib$(CRYPTLIB).so.$(SDKVER)
+endif
+
+
+##### LIBUNGIF library #####################################################
+
+
+##### GUI library #####################################################
+gui-norules: lib$(GUILIB).a lib$(GUILIB).so
+ 
+lib$(GUILIB).a: $(GUI_OBJECTS)
+ifdef HAVE_INTERFACE
+	$(ARR) $@ $?
+	$(ARS) $@
+endif	
+			 
+lib$(GUILIB).so: $(GUI_OBJECTS)
+ifdef HAVE_INTERFACE
+ifdef SO_CC
+ifdef SONAME
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@.$(SDKVER) $(SONAME) $@.$(SDKVER)
+	$(LN) $@.$(SDKVER) $@
+else
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@
+endif
+endif
+endif
+			 
+gui-clean:
+ifdef HAVE_INTERFACE
+	$(RM) $(GUI_OBJECTS) lib$(GUILIB).a
+ifdef SO_CC
+	$(RM) lib$(GUILIB).so lib$(GUILIB).so.$(SDKVER)
+endif
+endif
+
+
+##### SHELL library #####################################################
+shell-norules:  lib$(SHELLLIB).a lib$(SHELLLIB).so
+ 
+lib$(SHELLLIB).a: $(SHELL_OBJECTS)
+	$(ARR) $@ $?
+	$(ARS) $@
+			 
+lib$(SHELLLIB).so: $(SHELL_OBJECTS)
+ifdef SO_CC
+ifdef SONAME
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@.$(SDKVER) $(SONAME) $@.$(SDKVER)
+	$(LN) $@.$(SDKVER) $@
+else
+	$(SO_CC) $(SO_CFLAGS) $^ -o $@
+endif
+endif
+			 
+shell-clean:
+	$(RM) $(SHELL_OBJECTS) lib$(SHELLLIB).a
+ifdef SO_CC
+	$(RM) lib$(SHELLLIB).so lib$(SHELLLIB).so.$(SDKVER)
+endif
+
+include .depend					

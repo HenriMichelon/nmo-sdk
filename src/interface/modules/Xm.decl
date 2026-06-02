@@ -1,0 +1,27 @@
+/*
+$Id: Xm.decl,v 1.1.1.1 2002/11/03 19:18:17 hmichelon Exp $
+
+	Motif dynamic module wrapper for genmod
+
+*/
+MODULENAME=Xm
+
+CONFIGURE
+HAVE_X11
+HAVE_MOTIF
+
+INCLUDE
+#include <Xm/Xm.h>
+
+DECL
+XmString XmStringCreateLtoR(char *text,XmStringCharSet charset);
+Boolean XmStringGetLtoR(XmString string,XmStringCharSet charset,char **text);
+Widget XmCreateFileSelectionDialog(Widget ds_p,String name,ArgList fsb_args,Cardinal fsb_n);
+Widget XmSelectionBoxGetChild(Widget sb,unsigned int which);
+Widget XmCreateQuestionDialog(Widget parent,char *name,ArgList al,Cardinal ac);
+Widget XmCreateWarningDialog(Widget parent,char *name,ArgList al,Cardinal ac);
+Widget XmCreateErrorDialog(Widget parent,char *name,ArgList al,Cardinal ac);
+Widget XmCreateInformationDialog(Widget parent,char *name,ArgList al,Cardinal ac);
+Widget XmMessageBoxGetChild(Widget widget,unsigned int child);
+XmString XmStringCreateSimple(char *text);
+_XmConst char _XmStrings[];

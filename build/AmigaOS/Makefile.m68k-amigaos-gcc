@@ -1,0 +1,6 @@
+#$Id: Makefile.m68k-amigaos-gcc,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $
+
+CFLAGS+=-pipe -noixemul -DAUTO_LIB
+LFLAGS+=-lauto -noixemul -lm -s
+SO_LFLAGS=-export-dynamic -nostartfiles -resident -fbaserel32
+SO_CC=

@@ -1,0 +1,35 @@
+#$Id: Makefile.m68k-amigaos-gcc.in,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $
+
+AR=m68k-amigaos-ar
+LD=m68k-amigaos-ld
+LNK=$(LD)
+
+# archiver
+ARR=$(AR) rc
+# ranlib
+ARS=m68k-amigaos-ranlib
+# how to set the DT_SONAME name
+SONAME=-Xlinker -soname -Xlinker
+
+# debug/release options
+ifdef DEBUG
+D=d
+CFLAGS?=-ggdb
+CFLAGS+=-D__DEBUG
+LFLAGS?=
+else
+D=
+DFLAGS?=-O2
+DFLAGS?=-s
+endif 
+
+CFLAGS+=-Wall -fexceptions -nostdinc++
+LFLAGS+=-lstdc++
+
+# how to compile a shared object/library
+SO_CC=$(CC)
+SO_CFLAGS=
+SO_LFLAGS=-shared -export-dynamic -nostartfiles
+	 
+CXX=$(CC)
+CXXFLAGS=$(CFLAGS)

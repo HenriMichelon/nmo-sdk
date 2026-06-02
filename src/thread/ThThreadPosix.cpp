@@ -1,0 +1,159 @@
+/*                                ---------
+                                  [NMO-SDK]
+                                  ---------
+
+    The contents of this file are subject to the NMO SDK Public License
+    Version 1.1 (the "License"); you may not use this file except in
+    compliance with the License. You may obtain a copy of the License at
+    http://nmo-sdk.x-tech.org/licence.html
+
+    Software distributed under the License is distributed on an "AS IS"
+    basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+    License for the specific language governing rights and limitations under
+    the License.
+
+	(c) 1998-2002 Henri Michelon
+
+$Id: ThThreadPosix.cpp,v 1.2 2002/11/29 09:31:04 hmichelon Exp $
+------------------------------------------------------------------------------*/
+#include <nmo/NMO.hpp>
+using namespace NMO;
+#include <nmo/Thread.hpp>
+#include <pthread.h>
+
+#define ID (*(pthread_t*)(this->mThreadAbstract))
+
+//..............................................................................
+static void* nmo_mtthread_start_routine(void*TH)
+{
+	ASSERT(TH);
+	ThThread *th = (ThThread*)TH;
+	th->State() = ThThread::RUNNING;
+	th->OnStart();
+	th->Done();
+	return NULL;
+}
+
+ThThread::ThreadState& ThThread::State() { return state; };
+
+
+//..............................................................................
+ThThread::ThThread()
+{
+	state = WAITING;
+	mThreadAbstract = NULL;
+}
+
+
+//..............................................................................
+ThThread::~ThThread() { Stop(); }
+
+
+//..............................................................................
+void ThThread::Yield_() 
+{ 
+/*#if defined(amigaos)
+	pthread_yield_np();
+#endif*/
+}
+
+
+//..............................................................................
+_BOOL ThThread::Start (ThreadPriority PRI)
+{
+	ASSERTMSG(state != RUNNING, "ThThread::Start: thread already running");
+//#if defined(_SUNOS) || defined(_BSD) || defined(_IRIX)
+/*	const int sched_policy = SCHED_OTHER;
+	sched_param param;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setschedpolicy(&attr, sched_policy);
+	switch (PRI)
+	{
+	case LOW:
+		param.sched_priority = sched_get_priority_min(sched_policy);
+		break;
+	case HIGH:
+	case REAL_TIME:
+		param.sched_priority = sched_get_priority_max(sched_policy);
+		break;
+	default:
+		pthread_attr_getschedparam(&attr, &param);
+		break;
+	}
+	pthread_attr_setschedparam(&attr, &param);
+	Debug(dprintf("ThThread: new thread with priority=%d\n", param.sched_priority);)*/
+//#endif
+	mThreadAbstract = new pthread_t;
+	return (!pthread_create((pthread_t*)mThreadAbstract, NULL,
+							nmo_mtthread_start_routine,
+							this));
+}
+
+
+//..............................................................................
+void ThThread::Done()
+{
+	state = FINISHED;
+	if (mThreadAbstract != NULL) {
+		delete (pthread_t*)mThreadAbstract;
+		mThreadAbstract = NULL;
+	}
+}
+
+
+//..............................................................................
+void ThThread::Stop()
+{
+	// XXX: not an exit, a suicide !
+	if (state == RUNNING) { pthread_exit(NULL); }
+	Done();
+}
+
+
+//..............................................................................
+void ThThread::Wait()
+{
+	if (state == RUNNING) {
+		pthread_join(ID, NULL);
+	}
+}
+
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#undef ID
+#define ID (pthread_mutex_t*)(this->mCsAbstract)
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ThCriticalSection::~ThCriticalSection()
+{
+	if (mCsAbstract) {
+		Unlock();
+		pthread_mutex_destroy(ID);
+		delete (pthread_mutex_t*)mCsAbstract;
+	}
+
+}
+
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+void ThCriticalSection::Lock()
+{
+	pthread_mutex_lock(ID);
+}
+
+	
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+void ThCriticalSection::Unlock()
+{
+	pthread_mutex_unlock(ID);
+}
+
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+_BOOL ThCriticalSection::Init()
+{
+	mCsAbstract = new pthread_mutex_t;
+	return (!pthread_mutex_init(ID, NULL));
+}
+

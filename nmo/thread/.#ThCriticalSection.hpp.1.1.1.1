@@ -1,0 +1,76 @@
+/*                                ---------
+                                  [NMO-SDK]
+                                  ---------
+
+	The contents of this file are subject to the NMO SDK Public License
+    Version 1.1 (the "License"); you may not use this file except in
+    compliance with the License. You may obtain a copy of the License at
+    http://nmo-sdk.x-tech.org/licence.html
+
+    Software distributed under the License is distributed on an "AS IS"
+    basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+    License for the specific language governing rights and limitations under
+    the License.
+
+*/
+#ifndef _NMO_MT_CRITICAL_SECTION_H_
+#define _NMO_MT_CRITICAL_SECTION_H_
+
+namespace NMO {
+
+/*
+\brief	Simple critical section locking/unlocking
+
+		This class provide a minimum system
+		to manage critical sections.
+
+		All created critical sections are stored
+		in an automatically cleared list to
+		avoid dead locking on application end.
+		(you don't have to unlock all the cs at 
+		the application	termination).
+
+
+\author		(c) 1999-2002 Henri Michelon
+\version	$Id: ThCriticalSection.hpp,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $*/
+//--------------------------------------------------------------------------
+class ThCriticalSection: public NMOObject
+{
+public:
+	/*! Create a new named critical section
+		or return an existing section.
+		Sections are automaticaly deleted.
+	*/
+	static ThCriticalSection *Create(const Stringz&);
+
+	/*! Lock the section for exclusive use.
+		Or wait for unlock.
+	*/
+	void Lock();
+
+	/*! Release the previously locked section.
+		Undefined effect if the sections is not locked
+	*/
+	void Unlock();
+
+	/*! Return the name of the section */
+	Stringz Name();
+
+private:
+	Stringz name;
+	_PTR	mCsAbstract;
+
+	ThCriticalSection(const Stringz &NAME): name(NAME), mCsAbstract(NULL) { };
+	virtual ~ThCriticalSection();
+
+	friend class List<ThCriticalSection>;
+
+	_BOOL Init();
+
+Debug(public:) // oops
+	static List<ThCriticalSection> cs;
+};
+
+}
+
+#endif

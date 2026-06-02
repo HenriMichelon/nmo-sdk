@@ -1,0 +1,26 @@
+/* $Id: gtk.decl,v 1.1.1.1 2002/11/03 19:18:17 hmichelon Exp $
+*/   
+MODULENAME=gtk12
+
+CONFIGURE
+HAVE_X11
+HAVE_GTK
+
+INCLUDE
+#include <gtk/gtk.h>
+
+DECL
+void gtk_init_check(int *argc, char ***argv);
+void gtk_widget_hide_all(GtkWidget *widget);
+void gtk_main_quit(void);
+gchar* gtk_file_selection_get_filename(GtkFileSelection *filesel);
+GtkWidget* gtk_file_selection_new(const gchar *title);
+void gtk_file_selection_set_filename(GtkFileSelection *filesel, const gchar *filename);
+guint gtk_signal_connect(GtkObject *object, const gchar *name, GtkSignalFunc func, gpointer func_data);
+void gtk_main(void);
+GtkWidget* gtk_dialog_new(void);
+GtkWidget* gtk_label_new(const gchar *str);
+GtkWidget* gtk_button_new_with_label(const gchar *label);
+void gtk_container_add(GtkContainer *container, GtkWidget *widget);
+void gtk_widget_show(GtkWidget *widget);
+void gtk_widget_show_all(GtkWidget *widget);

@@ -1,0 +1,60 @@
+# $Id: install.in,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $
+
+install_lib()
+{
+	if [ -r "$target.a" ]
+	then
+		echo "installing "$target.a"..."
+		$INSTALLFILE "$target.a" "$PREFIX/lib"
+		chmod 644 "$PREFIX/lib/$target.a"
+	fi	
+	if [ -r "$target.so" ]
+	then
+		echo "installing "$target.so.$version"..."
+		$INSTALLFILE "$target.so.$version" "$PREFIX/lib"
+		chmod 755 "$PREFIX/lib/$target.so.$version"
+		rm -f "$PREFIX/lib/$target.so"
+		ln -s "$target.so.$version" "$PREFIX/lib/$target.so"
+	fi	
+}
+
+version=`cat VERSION`
+echo "SDK version: $version"
+
+$INSTALLDIRS "$PREFIX"
+$INSTALLDIRS "$PREFIX/bin"
+$INSTALLDIRS "$PREFIX/lib"
+$INSTALLDIRS "$PREFIX/include"
+
+allfiles=`find nmo | grep -v '\.AppleDouble' | grep -v 'CVS'`
+for filename in $allfiles; do
+	test -z "$filename" && continue
+	if [ -d "$filename" ]
+	then
+		echo "installing directory $PREFIX/include/$filename... "
+		$INSTALLDIRS "$PREFIX/include/$filename"
+	else	
+		dstdir=`dirname $filename`
+		$INSTALLFILE $filename "$PREFIX/include/$dstdir"
+		chmod 644 "$PREFIX/include/$filename"
+	fi
+done
+
+echo "installing nmo-sdk-config..."
+$INSTALLFILE "build/tools/mkdep" "$PREFIX/bin/nmo-mkdep"
+chmod 755 "$PREFIX/bin/nmo-mkdep"
+$INSTALLFILE "nmo-sdk-config" "$PREFIX/bin"
+chmod 755 "$PREFIX/bin/nmo-sdk-config"
+$INSTALLFILE "VERSION" "$PREFIX/include/nmo"
+chmod 644 "$PREFIX/include/nmo/VERSION"
+
+target=libnmo
+install_lib
+target=libnmoiface
+install_lib
+target=libnmocrypt
+install_lib
+target=libnmogui
+install_lib
+target=libnmoshell
+install_lib

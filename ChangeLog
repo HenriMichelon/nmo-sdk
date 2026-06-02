@@ -1,0 +1,176 @@
+$Id: ChangeLog,v 1.1.1.1 2002/11/03 19:18:16 hmichelon Exp $
+
+All dates are DD/MM/YYY
+Please refers to the CVS repository for more detailed logs.
+
+----- 0.0 -----------------------------------------------------------
+04/10/2201	hmichelon
+	GUI:	correcting problems with non-visible widgets
+
+----- 0.0-RC -----------------------------------------------------------
+
+28/09/2001	hmichelon
+	GUI:	First working version of the new Refresh() scheme
+
+27/08/2001	hmichelon
+	All:	Reworking the Makefiles and writting a correct mkdep tool
+
+23/08/2001	hmichelon
+	AmigaOS:Implementing ThCriticalSection & ThThread.
+			Fixing ConsoleApplication.
+	All:	Merging ThCriticalSection*.cpp file with ThThread*.cpp.
+			
+20/08/2001	hmichelon
+	AmigaOS:can be cross-compiled now (68k only).
+
+09/08/2001	hmichelon
+	All:	Split libnmo into libnmo & libiface.
+	NetBSD:	Now fully supported (using the Pth library).
+	OpenBSD:Now fully supported.
+
+08/08/2001	hmichelon
+	GUI:	new GScrollBox gadget.
+	MacOS:	entire rewrite of the Alarm class by using Carbon events loop timers.
+	        Rewrite of the WindowApplication main loop.
+	Darwin: Briging port up-to-date with X11 support.
+			
+06/08/2001	hmichelon
+	GUI:	new ShowModal method for GWindow
+	All:	new layout for the WindowApplication class
+
+01/08/2001	hmichelon
+	GUI:	new GGrid & GGridCell gadgets
+
+23/07/2001	hmichelon
+	GUI:	new GWidget::Simulate() method to simulate a user (mouse, keyboard)
+			or a system (move, resize, ...) event.
+	X11:	Added support for the "Windows" key on XFree86/x86.
+			Making event handling multi-threaded
+	All:	ThThread::Wait() do nothing when calling on a non-running thread
+
+13/07/2001	hmichelon
+	GUI:	resolved GText & GListBox initial refresh (when the window appears) problems.
+	All:	removed all useless ListIterator::Reset() call.
+
+10/07/2001	hmichelon
+	X11:	opening the screen BEFORE the WindowApplication::OnCreate event
+	All:	resolving memory blocks aligments problems on Sparc machines.
+
+09/07/2001	hmichelon
+	NetBSD:	now compiling without problems (with GCC 2.95.2), but
+	        not linking.
+	OpenBSD:now compiling & linking correctly.		
+
+----- PR2.1 -----------------------------------------------------------
+
+06/07/2001	hmichelon
+	All:	. Change FileCfg::Load() return type.
+			. Corrected DigestMD5 (which never have produced correct MD5 !)
+			. DaemonApplicationBSD now exit properly at any moment when 
+              calling Application::Terminate()
+            . Disabling GTK support in configure. Must use --enable=gtk
+			
+05/07/2001	hmichelon
+	All:	corrected NetIDIP.cpp (removed stupids gethostbyaddr()),
+			and improving it with a new value "any" for the hostname.
+			(corresponding to INADDR_ANY)
+
+----- PR2 -----------------------------------------------------------
+
+04/07/2001	hmichelon
+	All:	new System::Shutdown() method.
+	All:	corrected socket closing problems in NetIDIP.cpp
+	
+11/06/2001	hmichelon
+	X11:	using a flag to indicate the main event loop status. Useful
+			when calling windows resize/move methods before we enter
+			this loop, to emulate the loop calls.
+
+10/06/2001	hmichelon
+	Linux:	now compile & run correctly under kernel 2.4 /glibc 2.2.2/XFree86-4
+	All:	. corrected IWindow::ResizeDisplay()
+			. corrected GScrollBar::OnVScroll()
+			. new IWindow::SetBgColor() method
+			. two new dectection during configure:: snprintf() & vsnprintf()
+
+10/05/2001	hmichelon
+	MacOS:	updated for CarbonLib SDK 1.4
+
+----- PR1 -----------------------------------------------------------
+
+02/05/2001	hmichelon
+	All:	preparing the PR1
+
+01/05/2001	hmichelon	
+	Unix:	Using thread to start alarms triggered methods in Alarm
+
+29/04/2001	hmichelon
+	MacOS:	Implementing a polling system in the SoundDeviceMacOS class
+			to avoid reading from disk during interrupt time (== dead locks)
+			when filling <big> sound buffers.
+			Using ExitToShell() to exit correctly.
+
+22/04/2001	hmichelon
+	All:	Rewrite all makefiles and adapt the configure script
+			to make the UNIX/GCC build environment more simple
+			to maintain.
+	Unix:	Merged TimerBSD.cpp and TimerPosix.cpp in one file
+			and added tests in the configure script to find
+			which functions (BSD/POSIX) to use.
+
+21/04/2001	hmichelon
+	All:	Added the SONAME variable to the UNIX/GCC build environment
+	Unix:	Makes the /dev/dsp sound driver more portable and renames it
+			SoudDriverDsp. Cleanly compile & run under Linux.
+
+20/04/2001	hmichelon
+	AtheOS:	Starting port
+	All:	Splitted NMO.hpp into NMO.hpp, Base.hpp, Sys.hpp & Datatypes.hpp
+	
+11/04/2001	hmichelon
+	All:	Reviewed the FileCfg class to match the NMO "coding standards". 
+						(i.e. every private datas goes abstract)
+
+05/04/2001	hmichelon
+	All:	New Done() method in the ThThread class to cleanly
+            terminate a thread execution.
+
+04/04/2001	hmichelon
+	GUI:	Resolved some recurrent refreshing problems
+	        with "transparent" widgets.
+
+03/04/2001	hmichelon
+	All:	Added the possibility to pass optionals parameters when
+                creating a window (such as the display driver type).
+
+02/04/2001	hmichelon
+	All: 	Added a sound driver for the SDL http://www.libsdl.org 
+                (minimum support)
+	Unix:	First running version of the /dev/dsp sound driver 
+                (only for FreeBSD now)
+	X11:	Using X11 locking for multithreading
+
+01/04/2001	hmichelon
+	Win32:	Updating SoundDeviceDirectSound (was out of date from a long time)
+
+30/03/2001	hmichelon
+	All: 	Simplification of the sound package: the SoundDriver* classes 
+         	have been removed, everything is in SoundDevice* classes now.
+
+28/03/2001	hmichelon
+	Docs: 	new configuration file for Doxygen
+
+18/03/2001	hmichelon
+	Common: Corrected the search of named arguments in the Args class
+
+17/03/2001	hmichelon
+	Common: Cleaning the Debug.hpp & Debug.cpp files by rewritting
+	        some functions.
+			Exporting the DebugNewTrace symbol to allow applications
+			to activate new/delete operators tracing.
+			Cleaning the NMOException class by removing useless methods
+			and rewriting the others.
+
+16/03/2001	hmichelon
+	Docs: 	Added two mini-docs: macros.txt & debug.txt
+
