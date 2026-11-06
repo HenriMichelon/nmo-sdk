@@ -1,6 +1,6 @@
 # NMO-SDK
 
-**Historical archive** — experimental cross-platform C++ SDK, developed between 1996 and 2001 by Henri Michelon with the 
+**Historical archive** — experimental cross-platform C++ SDK, developed between 1996 and 2002 by Henri Michelon with the 
 supportive help from Christophe Decanini. Version 0.1 was publicly released on November 3, 2001. 
 The project was never officially finished; this repository is its archive.
 
@@ -8,7 +8,7 @@ Only one application have been developped with this SDK : the "361 Mixer" a mixi
 [Akhenaton](https://en.wikipedia.org/wiki/Akhenaton_(rapper)), released in 2002 with his second album "Sol Invictus"
 on a hybrid Audio/Data CD.
 
-**24 years after the first official release, in 2025, the GUI subsystem was extracted, adapted to modern C++ 23 standards and ported as the foundation for the widget framework of the [Lysa Game Engine](https://henrimichelon.github.io/Lysa/)
+**22 years after the first official release, in 2023, the GUI subsystem was extracted, adapted to modern C++ 23 standards and ported as the foundation for the widget framework of the [Lysa Game Engine](https://henrimichelon.github.io/Lysa/)
 and now live in his own repository [Lysa UI](https://henrimichelon.github.io/LysaUI/).**
 
 ---
